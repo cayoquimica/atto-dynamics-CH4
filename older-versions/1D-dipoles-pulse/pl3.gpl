@@ -1,0 +1,40 @@
+#set term postscript color enhanced "Helvetica" 16
+set term pngcairo truecolor size 800,600
+## set term postscript fontfile "hvrb10ex.pfa"  color enhanced "Helvetica" 16
+#use: "{/Helvetica-Bold=18 ^2{/HVTextEx-Bold \315}_g}"
+# "hvrm10ex.pfa" roman; "hvrb10ex.pfa" bold
+set encoding iso_8859_1
+#brick="#ca0000"
+#myblue="#5176ff"
+#set pointsize 1.4 
+#set xtics nomirror
+#set ytics nomirror
+#set mxtics 2
+#set mytics 2
+# set xlabel "{/Helvetica-Bold=20 nac12 diplacement with diffgrad - angstrom}"
+#set ylabel "{/Helvetica-Bold=20 relative energy / eV}"
+set format x "%.2f"
+set format y "%.2f"
+# set format y "10^{%T}"  #for 10^    or "%11.4e"
+
+set key Left reverse outside samplen 0.1 #set key Left reverse at graph 0.9, graph 0.99
+c=27.2114 # hartree p/ eV
+enrg=-39.78455824*c  # 
+
+set xlabel "{/Helvetica-Bold=20 q_1 (x displacement) }"
+
+set xrange[*:*]
+
+set ylabel "{/Helvetica-Bold=20 \Psi real}"
+set yrange[-2:6]
+
+set ylabel "{/Helvetica-Bold=20 \Psi imag}"
+do for [i=0:10000:20] {
+  j=i/20
+  outfile = sprintf('imag%06.0f.png',j)
+  set output outfile
+  plot "amp-imag.txt" index i u 1:($2) w l lw 2 lt 1 lc "dark-orange" ti "",\
+       "amp-imag.txt" index i u 1:($3+2) w l lw 2 lt 1 lc "black" ti "",\
+       "amp-imag.txt" index i u 1:($4+4) w l lw 2 lt 1 lc "blue" ti ""
+}
+

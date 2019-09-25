@@ -1,0 +1,74 @@
+#set term postscript color enhanced "Helvetica" 16
+set term png truecolor size 800,600
+## set term postscript fontfile "hvrb10ex.pfa"  color enhanced "Helvetica" 16
+#use: "{/Helvetica-Bold=18 ^2{/HVTextEx-Bold \315}_g}"
+# "hvrm10ex.pfa" roman; "hvrb10ex.pfa" bold
+set encoding iso_8859_1
+#brick="#ca0000"
+#myblue="#5176ff"
+#set pointsize 1.4 
+#set xtics nomirror
+#set ytics nomirror
+#set mxtics 2
+#set mytics 2
+# set xlabel "{/Helvetica-Bold=20 nac12 diplacement with diffgrad - angstrom}"
+#set ylabel "{/Helvetica-Bold=20 relative energy / eV}"
+set format x "%.2f"
+set format y "%.2f"
+# set format y "10^{%T}"  #for 10^    or "%11.4e"
+
+set key Left reverse outside samplen 0.1 #set key Left reverse at graph 0.9, graph 0.99
+c=27.2114 # hartree p/ eV
+enrg=-39.78455824*c  # 
+
+
+set yrange[*:*]
+set xrange[1.799:*]
+set ylabel "{/Helvetica-Bold=20 relative energy / eV}"
+set xlabel "{/Helvetica-Bold=20 q_1 (x displacement) }"
+set output "n2pot.png"
+
+plot "n2pot.dat" index 0 u 1:($2*c) w l lw 4 lt 1 lc "dark-orange" ti "true pot",\
+     "n2harm.dat" index 0 u 1:($2*c) w l lw 4 lt 1 lc "black" ti "harmonic pot"
+
+set yrange[*:0.6]
+set xrange[1.925:2.275]
+
+set output "n2pot-energylvl.png"
+plot "n2harm.dat" index 0 u 1:($2*c) w l lw 4 lt 1 lc "black" ti "harmonic pot",\
+     "n2harm.dat" index 0 u 1:($3*c) w l lw 2 lt 0 dt 2 lc "red" ti "zero-point energy"
+
+
+set xrange[1.599:*]
+set yrange[*:11]
+set ylabel "{/Helvetica-Bold=20 \Psi ^2}"
+
+
+#do for [i=0:1000] {
+#  plot "time-amp.txt" index i u 1:($2) w l lw 4 lt 1 lc "dark-orange" ti ""
+#}
+
+
+do for [i=0:1000] {
+  outfile = sprintf('file%05.0f.png',i)
+  set output outfile
+  plot "time-amp.txt" index i u 1:($2) w l lw 4 lt 1 lc "dark-orange" ti ""
+}
+
+set ylabel "{/Helvetica-Bold=20 \Psi real}"
+set xrange[1.599:*]
+set yrange[-4:6]
+
+do for [i=0:1000] {
+  outfile = sprintf('real%05.0f.png',i)
+  set output outfile
+  plot "amp-real.txt" index i u 1:($2) w l lw 4 lt 1 lc "dark-orange" ti ""
+}
+
+set ylabel "{/Helvetica-Bold=20 \Psi imag}"
+do for [i=0:1000] {
+  outfile = sprintf('imag%05.0f.png',i)
+  set output outfile
+  plot "amp-imag.txt" index i u 1:($2) w l lw 4 lt 1 lc "dark-orange" ti ""
+}
+
