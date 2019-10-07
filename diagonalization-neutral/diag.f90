@@ -44,7 +44,7 @@ write(*,*)'WORK(1) = ',int(WORK(1))
 write(*,*)'IWORK(1) = ',IWORK(1)
 
 write(*,'(20f12.8)')EIG(1:10)
-open(unit=100,file='vec',status='unknown')
+open(unit=100,file='eigen-vec-neutral',status='unknown')
 do i=1,s
   write(100,*)  ha(i,1)
 end do
