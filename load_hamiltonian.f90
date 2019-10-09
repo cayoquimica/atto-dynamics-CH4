@@ -109,16 +109,16 @@ end do                                         !
 ii=0                                           !
 do i=0,Nq1-1                                   !
   do j=0,Nq2-1                                 !
-    ax(ii    ,ii    ) = - pdm1x(i+1,j+1)       !
-    ax(s+ii  ,s+ii  ) = - pdm2x(i+1,j+1)       !
-    ax(2*s+ii,2*s+ii) = - pdm3x(i+1,j+1)       !
+    ax(ii    ,ii    ) = - dot_product( orientation, [ pdm1x(i+1,j+1),pdm1y(i+1,j+1),pdm1z(i+1,j+1) ] )  !
+    ax(s+ii  ,s+ii  ) = - dot_product( orientation, [ pdm2x(i+1,j+1),pdm2y(i+1,j+1),pdm2z(i+1,j+1) ] )  !
+    ax(2*s+ii,2*s+ii) = - dot_product( orientation, [ pdm3x(i+1,j+1),pdm3y(i+1,j+1),pdm3z(i+1,j+1) ] )  !
 !                                              !
-    ax(ii    ,s+ii  ) = - tdm21x(i+1,j+1)      !
-    ax(s+ii  ,ii    ) = - tdm21x(i+1,j+1)      !
-    ax(ii    ,2*s+ii) = - tdm31x(i+1,j+1)      !
-    ax(2*s+ii,ii    ) = - tdm31x(i+1,j+1)      !
-    ax(s+ii  ,2*s+ii) = - tdm32x(i+1,j+1)      !
-    ax(2*s+ii,s+ii  ) = - tdm32x(i+1,j+1)      !
+    ax(ii    ,s+ii  ) = - dot_product( orientation, [ tdm21x(i+1,j+1),tdm21y(i+1,j+1),tdm21z(i+1,j+1) ] )  !
+    ax(s+ii  ,ii    ) = - dot_product( orientation, [ tdm21x(i+1,j+1),tdm21y(i+1,j+1),tdm21z(i+1,j+1) ] )  !
+    ax(ii    ,2*s+ii) = - dot_product( orientation, [ tdm31x(i+1,j+1),tdm31y(i+1,j+1),tdm31z(i+1,j+1) ] )  !
+    ax(2*s+ii,ii    ) = - dot_product( orientation, [ tdm31x(i+1,j+1),tdm31y(i+1,j+1),tdm31z(i+1,j+1) ] )  !
+    ax(s+ii  ,2*s+ii) = - dot_product( orientation, [ tdm32x(i+1,j+1),tdm32y(i+1,j+1),tdm32z(i+1,j+1) ] )  !
+    ax(2*s+ii,s+ii  ) = - dot_product( orientation, [ tdm32x(i+1,j+1),tdm32y(i+1,j+1),tdm32z(i+1,j+1) ] )  !
     ii=ii+1                                    !
   end do                                       !
 end do                                         !

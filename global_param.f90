@@ -19,8 +19,8 @@ real(kind=dp)                              :: mass(3*NA) !3N Vector with the mas
 real(kind=dp)                              :: q1(3*NA),q2(3*NA),q1i(3*NA),q2i(3*NA),ai,bi,aii,bii !Conversion vector from internal coordinates q1 and q2 to cartesian coordinates
 real(kind=dp)                              :: co1(0:Nst*Nq1*Nq2-1),co2(0:Nst*Nq1*Nq2-1)
 real(kind=dp), dimension(:,:), allocatable :: pot1,pot2,pot3 !Matrices with each state potential energy
-real(kind=dp), dimension(:,:), allocatable :: pdm1x,pdm2x,pdm3x,pdm1y,pdm2y,pdm3y ! Permanent dipole moments
-real(kind=dp), dimension(:,:), allocatable :: tdm21x,tdm31x,tdm32x,tdm21y,tdm31y,tdm32y ! Transition dipole moments
+real(kind=dp), dimension(:,:), allocatable :: pdm1x,pdm2x,pdm3x,pdm1y,pdm2y,pdm3y,pdm1z,pdm2z,pdm3z ! Permanent dipole moments
+real(kind=dp), dimension(:,:), allocatable :: tdm21x,tdm31x,tdm32x,tdm21y,tdm31y,tdm32y,tdm21z,tdm31z,tdm32z ! Transition dipole moments
 real(kind=dp), dimension(:,:), allocatable :: Ha! Hamiltonian matrix
 real(kind=dp), dimension(:,:), allocatable :: ham,ax ! Variable to store the Hamiltonian matrix temporary
 real(kind=dp), dimension(:,:), allocatable :: moq1,moq2! Momentum matrix
@@ -35,6 +35,7 @@ real(kind=dp), parameter                   :: phase = 0.d0 !phase factor for the
 real(kind=dp), parameter                   :: freq =0.056937d0 !0.512285550500502 is the ionizating pulse !0.056937d0 !frequency of the pulse, in a.u. - 800 nm of wavelength
 real(kind=dp), parameter                   :: sig = 125.d0  ! 50 approx 1200 attoseconds - width of the gaussian envelop
 real(kind=dp), parameter                   :: E00 = 0.05d0 !0.05d0 !Electric field intensity
+real(kind=dp), dimension(3), parameter     :: orientation=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the pulse
 real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const3,E_init
 
 contains
@@ -43,14 +44,16 @@ subroutine load_data
 allocate (pot1(Nq1,Nq2))
 allocate (pot2(Nq1,Nq2))
 allocate (pot3(Nq1,Nq2))
-!allocate ( pdm1x(Nq1,Nq2),pdm2x(Nq1,Nq2),pdm3x(Nq1,Nq2),pdm1y(Nq1,Nq2),pdm2y(Nq1,Nq2),pdm3y(Nq1,Nq2) )
-allocate (pdm1x(Nq1,Nq2))
-allocate (pdm2x(Nq1,Nq2))
-allocate (pdm3x(Nq1,Nq2))
-!allocate ( tdm21x(Nq1,Nq2),tdm31x(Nq1,Nq2),tdm32x(Nq1,Nq2),tdm21y(Nq1,Nq2),tdm31y(Nq1,Nq2),tdm32y(Nq1,Nq2) )
-allocate (tdm21x(Nq1,Nq2))
-allocate (tdm31x(Nq1,Nq2))
-allocate (tdm32x(Nq1,Nq2))
+allocate ( pdm1x(Nq1,Nq2),pdm2x(Nq1,Nq2),pdm3x(Nq1,Nq2),pdm1y(Nq1,Nq2),pdm2y(Nq1,Nq2),pdm3y(Nq1,Nq2) )
+allocate ( pdm1z(Nq1,Nq2),pdm2z(Nq1,Nq2),pdm3z(Nq1,Nq2) )
+!allocate (pdm1x(Nq1,Nq2))
+!allocate (pdm2x(Nq1,Nq2))
+!allocate (pdm3x(Nq1,Nq2))
+allocate ( tdm21x(Nq1,Nq2),tdm31x(Nq1,Nq2),tdm32x(Nq1,Nq2),tdm21y(Nq1,Nq2),tdm31y(Nq1,Nq2),tdm32y(Nq1,Nq2) )
+allocate ( tdm21z(Nq1,Nq2),tdm31z(Nq1,Nq2),tdm32z(Nq1,Nq2) )
+!allocate (tdm21x(Nq1,Nq2))
+!allocate (tdm31x(Nq1,Nq2))
+!allocate (tdm32x(Nq1,Nq2))
 
 ll=0
 do k=1,Nst
@@ -65,9 +68,9 @@ end do
 
 !-------------------------------------------------------------------!
 ! Loading electronic structure data: Energy and dipole moments      !
-open(unit=1,file='v1f.txt',status='old')                             !
-open(unit=2,file='v2f.txt',status='old')                             !
-open(unit=3,file='v3f.txt',status='old')                             !
+open(unit=1,file='v1f.txt',status='old')                            !
+open(unit=2,file='v2f.txt',status='old')                            !
+open(unit=3,file='v3f.txt',status='old')                            !
 do i=1,Nq1                                                          !
   read(1,*) pot1(i,:)                                               !
   read(2,*) pot2(i,:)                                               !
@@ -77,26 +80,62 @@ end do                                                              !
  close(unit=2)                                                      !
  close(unit=3)                                                      !
                                                                     !
-open(unit=1,file='pdm1f.txt',status='old')                          !
-open(unit=2,file='pdm2f.txt',status='old')                          !
-open(unit=3,file='pdm3f.txt',status='old')                          !
-open(unit=4,file='tdm21f.txt',status='old')                         !
-open(unit=5,file='tdm31f.txt',status='old')                         !
-open(unit=6,file='tdm32f.txt',status='old')                         !
+open(unit=11,file='pdm1xf.txt',status='old')                        !
+open(unit=12,file='pdm2xf.txt',status='old')                        !
+open(unit=13,file='pdm3xf.txt',status='old')                        !
+open(unit=14,file='pdm1yf.txt',status='old')                        !
+open(unit=15,file='pdm2yf.txt',status='old')                        !
+open(unit=16,file='pdm3yf.txt',status='old')                        !
+open(unit=17,file='pdm1zf.txt',status='old')                        !
+open(unit=18,file='pdm2zf.txt',status='old')                        !
+open(unit=19,file='pdm3zf.txt',status='old')                        !
+open(unit=21,file='tdm21xf.txt',status='old')                       !
+open(unit=22,file='tdm31xf.txt',status='old')                       !
+open(unit=23,file='tdm32xf.txt',status='old')                       !
+open(unit=24,file='tdm21yf.txt',status='old')                       !
+open(unit=25,file='tdm31yf.txt',status='old')                       !
+open(unit=26,file='tdm32yf.txt',status='old')                       !
+open(unit=27,file='tdm21zf.txt',status='old')                       !
+open(unit=28,file='tdm31zf.txt',status='old')                       !
+open(unit=29,file='tdm32zf.txt',status='old')                       !
 do i=1,Nq1                                                          !
-  read(1,*) pdm1x(i,:)                                              !
-  read(2,*) pdm2x(i,:)                                              !
-  read(3,*) pdm3x(i,:)                                              !
-  read(4,*) tdm21x(i,:)                                             !
-  read(5,*) tdm31x(i,:)                                             !
-  read(6,*) tdm32x(i,:)                                             !
+  read(11,*) pdm1x(i,:)                                             !
+  read(12,*) pdm2x(i,:)                                             !
+  read(13,*) pdm3x(i,:)                                             !
+  read(14,*) pdm1y(i,:)                                             !
+  read(15,*) pdm2y(i,:)                                             !
+  read(16,*) pdm3y(i,:)                                             !
+  read(17,*) pdm1z(i,:)                                             !
+  read(18,*) pdm2z(i,:)                                             !
+  read(19,*) pdm3z(i,:)                                             !
+  read(21,*) tdm21x(i,:)                                            !
+  read(22,*) tdm31x(i,:)                                            !
+  read(23,*) tdm32x(i,:)                                            !
+  read(24,*) tdm21y(i,:)                                            !
+  read(25,*) tdm31y(i,:)                                            !
+  read(26,*) tdm32y(i,:)                                            !
+  read(27,*) tdm21z(i,:)                                            !
+  read(28,*) tdm31z(i,:)                                            !
+  read(29,*) tdm32z(i,:)                                            !
 end do                                                              !
- close(unit=1)                                                      !
- close(unit=2)                                                      !
- close(unit=3)                                                      !
- close(unit=4)                                                      !
- close(unit=5)                                                      !
- close(unit=6)                                                      !
+ close(unit=11)                                                     !
+ close(unit=12)                                                     !
+ close(unit=13)                                                     !
+ close(unit=14)                                                     !
+ close(unit=15)                                                     !
+ close(unit=16)                                                     !
+ close(unit=17)                                                     !
+ close(unit=18)                                                     !
+ close(unit=19)                                                     !
+ close(unit=21)                                                     !
+ close(unit=22)                                                     !
+ close(unit=23)                                                     !
+ close(unit=24)                                                     !
+ close(unit=25)                                                     !
+ close(unit=26)                                                     !
+ close(unit=27)                                                     !
+ close(unit=28)                                                     !
+ close(unit=29)                                                     !
 !-------------------------------------------------------------------!
 !-----------------------------------------------------------------------------------------------------------------------------------!
 !Defining the coefficients for coordinates q1 and q2 in cartesian                                                                   !
