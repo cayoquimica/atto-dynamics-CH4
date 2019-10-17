@@ -7,17 +7,20 @@ program dyn
 use global_param
 use omp_lib
 implicit none
-external rkdumb,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
-integer cont,n,jj,ii !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
-real(kind=dp) :: a,e0,k0 !sig=width of gaussian for vec0; soma=variable for sums
-integer npoints !number of time steps to take in integration
-real(kind=dp) :: t0,tf !t0=initial time for integration; tf=final time for integration
-real(kind=dp) :: tt,ch1,ch2,x,x0,kf,w,expo,c0,c1,tstep
-complex(kind=dp), allocatable :: vec0(:),vec1(:)
-real(kind=dp) :: q10,q20 ! point along q1 and q2 where the minimum global C2v is
-real(kind=dp) :: truni,trunf,start_time,stop_time,ompt0,ompt1,tt1,tt0 !time counters
-complex(kind=dp) :: mom(0:Nst*Nq1*Nq2-1),am(0:Nst*Nq1*Nq2-1) !vectors to store operators acting on the wave function
-real(kind=dp) :: soma,soma1,soma2,soma3,p1q1,p2q1,p3q1,p1q2,p2q2,p3q2,L1,L2,L3 !variables to store expectation values
+external                     :: rkdumb,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
+integer                      :: init_wf
+integer                      :: cont,n,jj,ii !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
+!real(kind=dp)                :: a,e0,k0 !sig=width of gaussian for vec0; soma=variable for sums
+integer                      :: npoints !number of time steps to take in integration
+real(kind=dp)                :: t0,tf !t0=initial time for integration; tf=final time for integration
+real(kind=dp)                :: tt,ch1,ch2,x,x0,kf,w,expo,c0,c1,tstep
+complex(kind=dp),allocatable :: nwf0(:),pice(:),wf0(:)
+real(kind=dp)                :: q10,q20 ! point along q1 and q2 where the minimum global C2v is
+real(kind=dp)                :: truni,trunf,start_time,stop_time,ompt0,ompt1,tt1,tt0 !time counters
+complex(kind=dp)             :: mom(0:Nst*Nq1*Nq2-1),am(0:Nst*Nq1*Nq2-1) !vectors to store operators acting on the wave function
+real(kind=dp)                :: soma,soma1,soma2,soma3,p1q1,p2q1,p3q1,p1q2,p2q2,p3q2,L1,L2,L3 !variables to store expectation values
+integer                      :: q1_initial,q1_final,q2_initial,q2_final
+complex(kind=dp),allocatable :: pia(:)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ! I modified the Ha, moq1 and moq2 matrices building so that their indexes begin with 0 instead of 1. 
@@ -79,65 +82,113 @@ end do
 !$ ompt1 = omp_get_wtime()
 write(100,*) 'The time to load the CSR vectors=',ompt1 - ompt0, "seconds"
 
-allocate ( vec0(0:Nst*Nq1*Nq2-1) )
-allocate ( vec1(0:Nst*Nq1*Nq2-1) )
-vec0=dcmplx(0.d0,0.d0)
-vec1=dcmplx(0.d0,0.d0)
+!$ ompt0 = omp_get_wtime()
+allocate ( nwf0(0:Nst*Nq1*Nq2-1) )
+nwf0=dcmplx(0.d0,0.d0)
+open(newunit=init_wf,file='eigen-vec-neutral',status='unknown')
+do i=0,s-1
+  read(init_wf,*) nwf0(i) !reading the neutral initial eigen state and writting in the first third part of the vector
+end do
+
+!Now read the photoinization coefficients and project them into the initial neutral ground state wave function
+allocate ( pice(0:Nst*Nq1*Nq2-1) )
+pice=dcmplx(0.d0,0.d0)
+allocate(pia(Nst))
+q1_initial=25
+q1_final=70
+q2_initial=75
+q2_final=115
+k = (q2_initial-1+20) * Nq1 + (q1_initial+27) - 1 !The -1 is because the vector starts at index 0
+do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated only for q2=75+20:115+20 and q1=25+27:70+27
+  do i=q1_initial+27,q1_final+27 !where the amplitudes of the eigen state of the neutral is non-zero (< 10^-8). This is the Frank-Condon region
+    call p_i_a(i-27,j-20,pia) !Evaluating the photoionization coeficients for all electronic states
+    pice(k)     = pia(1)
+    pice(k+s)   = pia(2)
+    pice(k+2*s) = pia(3)
+    k = k+1
+  end do
+  k = k + (Nq1-(q1_final+27)) + (q1_initial+27) - 1 !Add the zeros values from 70+27 until Nq1 and from 1 to 25+27. The -1 here is to anulate the last -1 of the previous loop
+end do
+
+allocate ( wf0(0:Nst*Nq1*Nq2-1) )
+!wf0=dcmplx(0.d0,0.d0)
+!Projecting the photoionization coeficients into the neutral eigen state
+do i=1,s
+  wf0(i)     = nwf0(i) * pice(i)
+  wf0(i+s)   = nwf0(i) * pice(i+s)
+  wf0(i+2*s) = nwf0(i) * pice(i+2*s)
+end do
+
+!allocate ( vec0(0:Nst*Nq1*Nq2-1) )
+!allocate ( vec1(0:Nst*Nq1*Nq2-1) )
+!vec0=dcmplx(0.d0,0.d0)
+!vec1=dcmplx(0.d0,0.d0)
 !! Follow mean value of momentum (k) through time and check if is always smaller than the maximum momentum from sampling
-!############################################################################################################!#
-! Buildin initial wave packet in 2D as the one of an Harmonic oscilator                                      !# 
-t0=0.d0                                                                                                      !#      
-tf=10000.0d0               !40 = Approx. 1 femtosecond                                                        !#  
-npoints=100000             !If 1000, the step will be approx. 1 attosecond                                    !#
-tstep=(tf-t0)/npoints    ! define time step size in atomic units                                             !#
-!                                                                                                            !#
-e0=4.0d-4 !initial energy for a harmonic case                                                                !#
-k0= sqrt(2.d0*mtotal*e0) ! k0 = initial momentum (In atomic units)                                           !#
-k0=0.d0                                                                                                      !#
-tt=0.d0                                                                                                      !#
-!kf=4.d0*mtotal*e0**2.d0 ! force constant of harmonic potential                                              !#
-w=2.d0*e0 !w=sqrt(kf/mredu) ---- 2.d0*e0 means the energy of the ground state of the harmonic oscilator      !#
-c0 = ((mtotal*w)/(pi))**(1.d0/4.d0)                                                                          !#
-c1 = (4.d0/pi*(mtotal*w)**3.d0)**(1.d0/4.d0)                                                                 !#
-cont=0.d0                                                                                                    !#
-q10=-0.4d0   ! mudei só pra ver o momento variando periodicamente                                            !#
-q20= 0.d0                                                                                                    !#
-do j=0,Nq2-1                                                                                                 !#
-  do i=0,Nq1-1                                                                                               !#
-    ch1=(i+1.d0-Nq1/2.d0-1.d0)*sq1+sq1/2.d0 !change in q1                                                    !#
-    ch2=(j+1.d0-(114.d0)-1.d0)*sq2 !change in q2                                                             !#
-!    expo = dexp(-(ch-q10)**2.d0*mtotal*w/2.d0) !* exp(im*k0*(ch))                                           !#
-    expo = dexp((-(ch1-q10)**2.d0*mtotal*w/2.d0)+(-(ch2-q20)**2.d0*mtotal*w/2.d0)) !* exp(im*k0*(ch))        !#
-    vec0(cont)= c0 * expo                                                                                    !#
-!    vec0(cont+1*s)= c0 * expo                                                                                !#
-!    vec0(cont+2*s)= c0 * expo                                                                                !#
-    cont=cont+1;                                                                                             !#
-  end do                                                                                                     !#
-end do                                                                                                       !# 
-!############################################################################################################!#
+!!############################################################################################################!#
+!! Buildin initial wave packet in 2D as the one of an Harmonic oscilator                                      !# 
+!t0=0.d0                                                                                                      !#      
+!tf=10000.0d0               !40 = Approx. 1 femtosecond                                                        !#  
+!npoints=100000             !If 1000, the step will be approx. 1 attosecond                                    !#
+!tstep=(tf-t0)/npoints    ! define time step size in atomic units                                             !#
+!!                                                                                                            !#
+!e0=4.0d-4 !initial energy for a harmonic case                                                                !#
+!k0= sqrt(2.d0*mtotal*e0) ! k0 = initial momentum (In atomic units)                                           !#
+!k0=0.d0                                                                                                      !#
+!tt=0.d0                                                                                                      !#
+!!kf=4.d0*mtotal*e0**2.d0 ! force constant of harmonic potential                                              !#
+!w=2.d0*e0 !w=sqrt(kf/mredu) ---- 2.d0*e0 means the energy of the ground state of the harmonic oscilator      !#
+!c0 = ((mtotal*w)/(pi))**(1.d0/4.d0)                                                                          !#
+!c1 = (4.d0/pi*(mtotal*w)**3.d0)**(1.d0/4.d0)                                                                 !#
+!cont=0.d0                                                                                                    !#
+!q10=-0.4d0   ! mudei só pra ver o momento variando periodicamente                                            !#
+!q20= 0.d0                                                                                                    !#
+!do j=0,Nq2-1                                                                                                 !#
+!  do i=0,Nq1-1                                                                                               !#
+!    ch1=(i+1.d0-Nq1/2.d0-1.d0)*sq1+sq1/2.d0 !change in q1                                                    !#
+!    ch2=(j+1.d0-(114.d0)-1.d0)*sq2 !change in q2                                                             !#
+!    expo = dexp((-(ch1-q10)**2.d0*mtotal*w/2.d0)+(-(ch2-q20)**2.d0*mtotal*w/2.d0)) !* exp(im*k0*(ch))        !#
+!    vec0(cont)= c0 * expo                                                                                    !#
+!    cont=cont+1;                                                                                             !#
+!  end do                                                                                                     !#
+!end do                                                                                                       !# 
+!!############################################################################################################!#
 !--------------------------------------------!
 !normalizing                                 !
 soma=0.d0                                    !
 do i=0,n-1                                   !
-  soma=soma+dconjg(vec0(i))*vec0(i)          !
+  soma=soma+dconjg(wf0(i))*wf0(i)            !
 end do                                       !
-vec0=vec0/sqrt(soma)                         !
+wf0=wf0/sqrt(soma)                           !
 !--------------------------------------------!
-write(100,'(a24,(es15.7e3))')'normalization constant =',soma
+!$ ompt1 = omp_get_wtime()
+write(100,*) 'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
+write(100,'(a35,(es15.7e3))')'normalization constant =',soma
+write(100,'(a35,(es15.7e3))')'Energy of the ionizing pulse =',e_ip
+write(100,'(a35,(es15.7e3))')'Number of points in coordinate 1 =',Nq1
+write(100,'(a35,(es15.7e3))')'Number of points in coordinate 2 =',Nq2
+write(100,'(a35,(es15.7e3))')'Number of states =',Nst
+write(100,'(a35,(3es9.1e3))')'Orientation of the probing electric field =',orientation
+write(100,'(a35,(es15.7e3))')'Time where the probing electric field is centered =',t00
+write(100,'(a35,(es15.7e3))')'Phase of the probing electric field =',phase
+write(100,'(a35,(es15.7e3))')'Energy of the probing electric field =',freq
+write(100,'(a35,(es15.7e3))')'Duration of the probing electric field (sigma) =',sig
+write(100,'(a35,(es15.7e3))')'Intensity of the probing electric field =',E00
+write(100,*)''
+write(100,'(a61)')'Inital state of the cation after a sudden ionization defined'
 
 
 !$ tt0 = omp_get_wtime()
-call angular_momentum(vec0,n,am)
+call angular_momentum(wf0,n,am)
 !$ tt1 = omp_get_wtime()
 
 
 !--------------------------------------------------------!
 !Checking initial energy and momentum                    !
 !$ ompt0 = omp_get_wtime()                               !
-call HA_calc(tt,vec0,n,vec1,tstep) !evaluating y'(t=0,y) !
+call HA_calc(tt,wf0,n,pice,tstep) !evaluating y'(t=0,y)  !
 !$ ompt1 = omp_get_wtime()                               !
 !$ start_time = omp_get_wtime()                          !
-call momentum_calc_q1(vec0,mom,n) ! evaluating dydq      !
+call momentum_calc_q1(wf0,mom,n) ! evaluating dydq       !
 !$ stop_time = omp_get_wtime()                           !
 soma=0.d0                                                !
 soma1=0.d0                                               !
@@ -153,43 +204,43 @@ L1=0.d0                                                  !
 L2=0.d0                                                  !
 L3=0.d0                                                  !
 do i=0,s-1                                               !
-  soma1=soma1 + dconjg(vec0(i)) * vec1(i)*im             !
-  soma2=soma2 + dconjg(vec0(i+s)) * vec1(i+s)*im         !
-  soma3=soma3 + dconjg(vec0(i+2*s)) * vec1(i+2*s)*im     !
-  p1q1=p1q1 + dconjg(vec0(i)) * mom(i)                   !
-  p2q1=p2q1 + dconjg(vec0(i+s)) * mom(i+s)               !
-  p3q1=p3q1 + dconjg(vec0(i+2*s)) * mom(i+2*s)           !
-  L1    = L1    + dconjg(vec0(i))     * am(i)            !
-  L2    = L2    + dconjg(vec0(i+s))   * am(i+s)          !
-  L3    = L3    + dconjg(vec0(i+2*s)) * am(i+2*s)        !
+  soma1=soma1 + dconjg(wf0(i)) * pice(i)*im              !
+  soma2=soma2 + dconjg(wf0(i+s)) * pice(i+s)*im          !
+  soma3=soma3 + dconjg(wf0(i+2*s)) * pice(i+2*s)*im      !
+  p1q1=p1q1 + dconjg(wf0(i)) * mom(i)                    !
+  p2q1=p2q1 + dconjg(wf0(i+s)) * mom(i+s)                !
+  p3q1=p3q1 + dconjg(wf0(i+2*s)) * mom(i+2*s)            !
+  L1    = L1    + dconjg(wf0(i))     * am(i)             !
+  L2    = L2    + dconjg(wf0(i+s))   * am(i+s)           !
+  L3    = L3    + dconjg(wf0(i+2*s)) * am(i+2*s)         !
 end do                                                   !
-call momentum_calc_q2(vec0,mom,n) ! evaluating dydq      !
+call momentum_calc_q2(wf0,mom,n) ! evaluating dydq       !
 do i=0,s-1                                               !
-  p1q2=p1q2 + dconjg(vec0(i)) * mom(i)                   !
-  p2q2=p2q2 + dconjg(vec0(i+s)) * mom(i+s)               !
-  p3q2=p3q2 + dconjg(vec0(i+2*s)) * mom(i+2*s)           !
+  p1q2=p1q2 + dconjg(wf0(i)) * mom(i)                    !
+  p2q2=p2q2 + dconjg(wf0(i+s)) * mom(i+s)                !
+  p3q2=p3q2 + dconjg(wf0(i+2*s)) * mom(i+2*s)            !
 end do                                                   !
-write(100,'(a24,e23.15e3,a8)')'inital momentum in q1 =',p1q1+p2q1+p3q1,' au.'
-write(100,'(a24,e23.15e3,a8)')'inital momentum in q2 =',p1q2+p2q2+p3q2,' au.'
+write(100,'(a35,e23.15e3,a8)')'inital linear momentum in q1 =',p1q1+p2q1+p3q1,' au.'
+write(100,'(a35,e23.15e3,a8)')'inital linear momentum in q2 =',p1q2+p2q2+p3q2,' au.'
 !--------------------------------------------------------!
 E_init=soma1+soma2+soma3 !Storing the initial energy 
 write(100,*)'##############################################################################'
 write(100,*)'Time the program took to do the operation H|Psi> is:',(ompt1-ompt0), "seconds"
 write(100,*)'Be ready to wait probably ', npoints*(tt1-tt0+(stop_time-start_time)*2.d0+(ompt1-ompt0)*5.d0)/(3600.d0) , "hours"
 write(100,*)'##############################################################################'
-write(100,'(a24,3(f23.15))')'initial angular momentum = ',L1,L2,L3,L1+L2+L3
-write(100,'(a24,(f23.15),a8)')'inital energy =',soma1+soma2+soma3,' hartree'
-write(100,'(a24,(f23.15))')'initial 1 / dq1 =',1.d0/sq1
-write(100,'(a24,(f23.15))')'initial 1 / dq2 =',1.d0/sq2
-write(100,'(a24,(f23.15))')'initial k * dq =',dsqrt(2*mtotal*e0)*sq1*sq2 
-write(100,'(a24,(f23.15),a4)')'vibrational frequency =',w,' au.'
+write(100,'(a35,3(f23.15))')'initial angular momentum = ',L1,L2,L3,L1+L2+L3
+write(100,'(a35,(f23.15),a8)')'inital energy =',soma1+soma2+soma3,' hartree'
+write(100,'(a35,(f23.15))')'initial 1 / dq1 =',1.d0/sq1
+write(100,'(a35,(f23.15))')'initial 1 / dq2 =',1.d0/sq2
+!write(100,'(a35,(f23.15))')'initial k * dq =',dsqrt(2*mtotal*e0)*sq1*sq2 
+write(100,'(a35,(f23.15),a4)')'vibrational frequency =',w,' au.'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! nanoseconds = 1d-9 seconds
 ! picoseconds = 1d-12 seconds
 ! femtoseconds = 1d-15 seconds
 ! attoseconds = 1d-18 seconds
 ! 1 time atomic units = 24.18884326505 attoseconds
-call rkdumb(vec0,n,t0,tf,npoints,tstep,HA_calc)
+call rkdumb(wf0,n,t0,tf,npoints,tstep,HA_calc)
 !$ trunf = omp_get_wtime()
 write(100,*)'Time took to run totaly the program = ', (trunf-truni)/3600.d0, 'hours.'
 write(100,*)'************************************************************'
@@ -797,6 +848,110 @@ end do
 end subroutine angular_momentum
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+!Function that calculates the photoionization amplitudes for a given geometry and a given electric field
+!Some parts of this function assumes that the number of electronic states is 3
+subroutine p_i_a(i1,i2,pic)
+use global_param
+implicit none
+complex(kind=dp),dimension(Nst) :: pic
+integer                         :: i1,i2,ii,jj,kk
+character(len=21)               :: fname00
+integer                         :: file1,file2,file3,file4,file5
+integer,parameter               :: nang=512
+integer,parameter               :: nk=256
+real(kind=dp),allocatable       :: vec1(:,:),vec2(:,:),vec3(:,:)
+real(kind=dp)                   :: k0,k1,k2,e0,e1,e2,p_e(nk)
+real(kind=dp)                   :: phi(nang),theta(nang),domega
+complex(kind=dp),allocatable    :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),coef1(:,:),coef2(:,:)
+real(kind=dp)                   :: ip0,ip1,ip2
+integer                         :: aux1(Nst)
+real(kind=dp)                   :: aux2(Nst)
 
+allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
+allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
 
+fname00='pice_10000000_0_0.txt'
+write(fname00(7:9),'(i0.3)') i2+100
+write(fname00(12:13),'(i0.2)') i1
+open(newunit=file1,file=fname00,status='old')
+write(fname00(17:17),'(i1)') 1
+open(newunit=file2,file=fname00,status='old')
+write(fname00(17:17),'(i1)') 2
+open(newunit=file3,file=fname00,status='old')
+!now read the x, y and z components of the photoionization coupling elements.
+do ii=1,nk*nang
+  read(file1,*) vec1(ii,:)!,vec1(i,2),vec1(i,3),vec1(i,4),vec1(i,5),vec1(i,6)
+  read(file2,*) vec2(ii,:)!,vec2(i,2),vec2(i,3),vec2(i,4),vec2(i,5),vec2(i,6)
+  read(file3,*) vec3(ii,:)!,vec3(i,2),vec3(i,3),vec3(i,4),vec3(i,5),vec3(i,6)
+end do
+kk=1
+do ii=1,nk
+  do jj=1,nang
+    r0(ii,jj,1)=dcmplx( vec1(kk,1) , vec1(kk,2) )
+    r0(ii,jj,2)=dcmplx( vec1(kk,3) , vec1(kk,4) )
+    r0(ii,jj,3)=dcmplx( vec1(kk,5) , vec1(kk,6) )
+    r1(ii,jj,1)=dcmplx( vec2(kk,1) , vec2(kk,2) )
+    r1(ii,jj,2)=dcmplx( vec2(kk,3) , vec2(kk,4) )
+    r1(ii,jj,3)=dcmplx( vec2(kk,5) , vec2(kk,6) )
+    r2(ii,jj,1)=dcmplx( vec3(kk,1) , vec3(kk,2) )
+    r2(ii,jj,2)=dcmplx( vec3(kk,3) , vec3(kk,4) )
+    r2(ii,jj,3)=dcmplx( vec3(kk,5) , vec3(kk,6) )
+    kk=kk+1
+  end do
+end do
+
+open(newunit=file4,file='test_sym_dist3.txt',status='old')
+do ii=1,nang
+  read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
+end do
+
+ip0 = pot1(i1+27,i2+20) - e_neut !ionization potential for ground state of the cation
+ip1 = pot2(i1+27,i2+20) - e_neut !ionization potential for first excited state of the cation
+ip2 = pot3(i1+27,i2+20) - e_neut !ionization potential for second excited state of the cation
+e0 = e_ip - ip0 !Energy of the ionized electron if the molecule goes for the cation ground state
+e1 = e_ip - ip1 !Energy of the ionized electron if the molecule goes for the cation first excited state
+e2 = e_ip - ip2 !Energy of the ionized electron if the molecule goes for the cation second excited state
+
+domega=4*pi/nang
+coef0=0.d0
+coef1=0.d0
+coef2=0.d0
+do ii=1,nk
+  do jj=1,nang
+    coef0(ii,1) = coef0(ii,1) + r0(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+    coef0(ii,2) = coef0(ii,2) + r0(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+    coef0(ii,3) = coef0(ii,3) + r0(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+    coef1(ii,1) = coef1(ii,1) + r1(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+    coef1(ii,2) = coef1(ii,2) + r1(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+    coef1(ii,3) = coef1(ii,3) + r1(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+    coef2(ii,1) = coef2(ii,1) + r2(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+    coef2(ii,2) = coef2(ii,2) + r2(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+    coef2(ii,3) = coef2(ii,3) + r2(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+  end do
+  p_e(ii) = 0.005859375d0 + (ii-1) * 0.00588235294117647d0 !Momentum values in which the photoionization matrix elements are spanned
+end do
+
+!define the correct i, the correct momentum of the electron
+aux2 = e_ip
+do ii=1,nk
+  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
+    aux1(1) = ii !Defining the value of the momentum of the leaving electron
+    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
+  end if
+  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
+    aux1(2) = ii !Defining the value of the momentum of the leaving electron
+    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
+  end if
+  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
+    aux1(3) = ii !Defining the value of the momentum of the leaving electron
+    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
+  end if
+end do
+
+!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
+pic(1) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef0(aux1(1),:) )
+pic(2) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef1(aux1(2),:) )
+pic(3) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef2(aux1(3),:) )
+
+end subroutine p_i_a
 

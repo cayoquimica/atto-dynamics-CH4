@@ -4,8 +4,8 @@ integer, parameter                         :: dp = kind(1.d0)
 integer                                    :: i,j,k,ll
 integer, parameter                         :: NA=5 !Number of atoms
 integer, parameter                         :: Nst=1 !number of electronic states
-integer, parameter                         :: Nq1=92 !126 !number of points of the grid along q1
-integer, parameter                         :: Nq2=144 !179 !number of points of the grid along q2
+integer, parameter                         :: Nq1=146 !126 !number of points of the grid along q1
+integer, parameter                         :: Nq2=184 !179 !number of points of the grid along q2
 integer, parameter                         :: s=Nq1*Nq2 !counter to be used as index - means the size of a 1 state matrix, which is Nq1*Nq2
 complex(kind=dp)                           :: im
 real(kind=dp), parameter                   :: pi = 3.141592653589793d0

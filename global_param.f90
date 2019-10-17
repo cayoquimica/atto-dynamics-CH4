@@ -37,6 +37,9 @@ real(kind=dp), parameter                   :: sig = 125.d0  ! 50 approx 1200 att
 real(kind=dp), parameter                   :: E00 = 0.05d0 !0.05d0 !Electric field intensity
 real(kind=dp), dimension(3), parameter     :: orientation=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the pulse
 real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const3,E_init
+real(kind=dp), parameter                   :: e_ref = -39.837813947407d0 !Reference energy of the C2v minimum of the cation
+real(kind=dp), parameter                   :: e_neut = -40.284741884377d0-e_ref !Energy of the ground state of the neutral in the TD geometry, from where the ionization happens 
+real(kind=dp), parameter                   :: e_ip =  1.d0 !Energy of the ionizing pulse in atomic units 1 = approx 27 ev
 
 contains
 
