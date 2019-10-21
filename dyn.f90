@@ -331,14 +331,53 @@ linear momentum in q1 st1, linear momentum in q2 st1, linear momentum in q1 st2,
 linear momentum in q1 st3, linear momentum in q2 st3'
 Et=(E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
 write(15,'(17(es26.16e3))')t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
-
-
+!=================================================================!
+!saving inital wave function                                      ! 
+fname='amp-time-st1-000001.dat'                                   !
+open(unit=20,file=fname,status='unknown')                         !
+fname='amp-real-st1-000001.dat'                                   !
+open(unit=30,file=fname,status='unknown')                         !
+fname='amp-imag-st1-000001.dat'                                   !
+open(unit=40,file=fname,status='unknown')                         !
+fname='amp-time-st2-000001.dat'                                   !
+open(unit=50,file=fname,status='unknown')                         !
+fname='amp-real-st2-000001.dat'                                   !
+open(unit=60,file=fname,status='unknown')                         !
+fname='amp-imag-st2-000001.dat'                                   !
+open(unit=70,file=fname,status='unknown')                         !
+fname='amp-time-st3-000001.dat'                                   !
+open(unit=80,file=fname,status='unknown')                         !
+fname='amp-real-st3-000001.dat'                                   !
+open(unit=90,file=fname,status='unknown')                         !
+fname='amp-imag-st3-000001.dat'                                   !
+open(unit=99,file=fname,status='unknown')                         !
+do i=0,s-1                                                        !
+  write(20,'(3(es26.16e3))') real(dconjg(y(i))*y(i))              !
+  write(30,'(3(es26.16e3))') (  real(y(i)) )                      !
+  write(40,'(3(es26.16e3))') ( aimag(y(i)) )                      !
+  write(50,'(3(es26.16e3))') real(dconjg(y(1*s+i))*y(1*s+i))      !
+  write(60,'(3(es26.16e3))') (  real(y(1*s+i)) )                  !
+  write(70,'(3(es26.16e3))') ( aimag(y(1*s+i)) )                  !
+  write(80,'(3(es26.16e3))') real(dconjg(y(2*s+i)) * y(2*s+i))    !
+  write(90,'(3(es26.16e3))') (  real(y(2*s+i)) )                  !
+  write(99,'(3(es26.16e3))') ( aimag(y(2*s+i)) )                  !
+end do                                                            !
+close(unit=20)                                                    !
+close(unit=30)                                                    !
+close(unit=40)                                                    !
+close(unit=50)                                                    !
+close(unit=60)                                                    !
+close(unit=70)                                                    !
+close(unit=80)                                                    !
+close(unit=90)                                                    !
+close(unit=99)                                                    !
+!=================================================================!
 write(100,*) '************************************************************'
 write(100,*) 'Integrating amplitudes over time'
 write(100,*) '************************************************************'
 write(100,*) 'time ,   Pulse  ,     E1    ,    E2     ,    E3     ,   ET-E0   ,   norm1   ,   norm2   ,   norm3   , NormT-1   &
 ,   Ltot    '
-ii=0;gg=0
+ii=0;gg=1
 do ll=1,1000 ! for saving 1000 time samples
   gg=gg+1
   do k=1,(npoints/1000)
