@@ -99,6 +99,7 @@ q1_final=70
 q2_initial=75
 q2_final=115
 k = (q2_initial-1+20) * Nq1 + (q1_initial+27) - 1 !The -1 is because the vector starts at index 0
+!!$OMP parallel do default(private) shared(pice)
 do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated only for q2=75+20:115+20 and q1=25+27:70+27
   do i=q1_initial+27,q1_final+27 !where the amplitudes of the eigen state of the neutral is non-zero (< 10^-8). This is the Frank-Condon region
     call p_i_a(i-27,j-20,pia) !Evaluating the photoionization coeficients for all electronic states
@@ -109,7 +110,7 @@ do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated
   end do
   k = k + (Nq1-(q1_final+27)) + (q1_initial+27) - 1 !Add the zeros values from 70+27 until Nq1 and from 1 to 25+27. The -1 here is to anulate the last -1 of the previous loop
 end do
-
+!!$OMP end parallel do
 allocate ( wf0(0:Nst*Nq1*Nq2-1) )
 !wf0=dcmplx(0.d0,0.d0)
 !Projecting the photoionization coeficients into the neutral eigen state
