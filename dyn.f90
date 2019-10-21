@@ -856,6 +856,7 @@ implicit none
 complex(kind=dp),dimension(Nst) :: pic
 integer                         :: i1,i2,ii,jj,kk
 character(len=21)               :: fname00
+character(len=199)              :: fpath0,fpath1
 integer                         :: file1,file2,file3,file4,file5
 integer,parameter               :: nang=512
 integer,parameter               :: nk=256
@@ -869,15 +870,18 @@ real(kind=dp)                   :: aux2(Nst)
 
 allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
 allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
-
+call getcwd(fpath0)
 fname00='pice_10000000_0_0.txt'
 write(fname00(7:9),'(i0.3)') i2+100
 write(fname00(12:13),'(i0.2)') i1
-open(newunit=file1,file=fname00,status='old')
+fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
+open(newunit=file1,file=fpath1,status='old')
 write(fname00(17:17),'(i1)') 1
-open(newunit=file2,file=fname00,status='old')
+fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
+open(newunit=file2,file=fpath1,status='old')
 write(fname00(17:17),'(i1)') 2
-open(newunit=file3,file=fname00,status='old')
+fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
+open(newunit=file3,file=fpath1,status='old')
 !now read the x, y and z components of the photoionization coupling elements.
 do ii=1,nk*nang
   read(file1,*) vec1(ii,:)!,vec1(i,2),vec1(i,3),vec1(i,4),vec1(i,5),vec1(i,6)
