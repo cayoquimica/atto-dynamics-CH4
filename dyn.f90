@@ -870,7 +870,7 @@ real(kind=dp)                   :: aux2(Nst)
 
 allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
 allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
-call getcwd(fpath0)
+call getcwd(fpath0) !getting the working directory path
 fname00='pice_10000000_0_0.txt'
 write(fname00(7:9),'(i0.3)') i2+100
 write(fname00(12:13),'(i0.2)') i1
