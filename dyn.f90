@@ -10,23 +10,24 @@ implicit none
 external                     :: rkdumb,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
 integer                      :: init_wf
 integer                      :: cont,n,jj,ii !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
-!real(kind=dp)                :: a,e0,k0 !sig=width of gaussian for vec0; soma=variable for sums
 integer                      :: npoints !number of time steps to take in integration
 real(kind=dp)                :: t0,tf !t0=initial time for integration; tf=final time for integration
-real(kind=dp)                :: tt,ch1,ch2,x,x0,kf,w,expo,c0,c1,tstep
-complex(kind=dp),allocatable :: nwf0(:),pice(:),wf0(:)
+real(kind=dp)                :: tstep!,tt,ch1,ch2,x,x0,kf,w,expo,c0,c1
+complex(kind=dp),allocatable :: wf0(:),wf1(:)!pice(:),nwf0(:)
 real(kind=dp)                :: q10,q20 ! point along q1 and q2 where the minimum global C2v is
 real(kind=dp)                :: truni,trunf,start_time,stop_time,ompt0,ompt1,tt1,tt0 !time counters
 complex(kind=dp)             :: mom(0:Nst*Nq1*Nq2-1),am(0:Nst*Nq1*Nq2-1) !vectors to store operators acting on the wave function
 real(kind=dp)                :: soma,soma1,soma2,soma3,p1q1,p2q1,p3q1,p1q2,p2q2,p3q2,L1,L2,L3 !variables to store expectation values
-integer                      :: q1_initial,q1_final,q2_initial,q2_final
-complex(kind=dp),allocatable :: pia(:)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 ! I modified the Ha, moq1 and moq2 matrices building so that their indexes begin with 0 instead of 1. 
 ! It is not the ideal way, I use a auxiliar matrix to build with index 1 as I already had written in the code and then I put it
 ! in a matrix with index starting in 0.
 ! Later would be better and faster if I already build the matrices with index 0.     <<<---------------
+t0=0.d0
+tf=10000.0d0           !1000 = 24.18884326505 femtoseconds
+npoints=100000         
+tstep=(tf-t0)/npoints  !define time step size in atomic units
 
 !$ truni = omp_get_wtime()
 open(unit=100,file='output',status='unknown') ! output for following the code running
@@ -82,44 +83,12 @@ end do
 !$ ompt1 = omp_get_wtime()
 write(100,*) 'The time to load the CSR vectors=',ompt1 - ompt0, "seconds"
 
-!$ ompt0 = omp_get_wtime()
-allocate ( nwf0(0:Nst*Nq1*Nq2-1) )
-nwf0=dcmplx(0.d0,0.d0)
-open(newunit=init_wf,file='eigen-vec-neutral',status='unknown')
-do i=0,s-1
-  read(init_wf,*) nwf0(i) !reading the neutral initial eigen state and writting in the first third part of the vector
-end do
-
-!Now read the photoinization coefficients and project them into the initial neutral ground state wave function
-allocate ( pice(0:Nst*Nq1*Nq2-1) )
-pice=dcmplx(0.d0,0.d0)
-allocate(pia(Nst))
-q1_initial=25
-q1_final=70
-q2_initial=75
-q2_final=115
-k = (q2_initial-1+20) * Nq1 + (q1_initial+27) - 1 !The -1 is because the vector starts at index 0
-!!$OMP parallel do default(private) shared(pice)
-do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated only for q2=75+20:115+20 and q1=25+27:70+27
-  do i=q1_initial+27,q1_final+27 !where the amplitudes of the eigen state of the neutral is non-zero (< 10^-8). This is the Frank-Condon region
-    call p_i_a(i-27,j-20,pia) !Evaluating the photoionization coeficients for all electronic states
-    pice(k)     = pia(1)
-    pice(k+s)   = pia(2)
-    pice(k+2*s) = pia(3)
-    k = k+1
-  end do
-  k = k + (Nq1-(q1_final+27)) + (q1_initial+27) - 1 !Add the zeros values from 70+27 until Nq1 and from 1 to 25+27. The -1 here is to anulate the last -1 of the previous loop
-end do
-!!$OMP end parallel do
 allocate ( wf0(0:Nst*Nq1*Nq2-1) )
-!wf0=dcmplx(0.d0,0.d0)
-!Projecting the photoionization coeficients into the neutral eigen state
-do i=1,s
-  wf0(i)     = nwf0(i) * pice(i)
-  wf0(i+s)   = nwf0(i) * pice(i+s)
-  wf0(i+2*s) = nwf0(i) * pice(i+2*s)
+wf0=dcmplx(0.d0,0.d0)
+open(newunit=init_wf,file='wfINIT',status='old')
+do i=0,n-1
+  read(init_wf,*) wf0(i) !reading the neutral initial eigen state and writting in the first third part of the vector
 end do
-
 !allocate ( vec0(0:Nst*Nq1*Nq2-1) )
 !allocate ( vec1(0:Nst*Nq1*Nq2-1) )
 !vec0=dcmplx(0.d0,0.d0)
@@ -153,40 +122,32 @@ end do
 !  end do                                                                                                     !#
 !end do                                                                                                       !# 
 !!############################################################################################################!#
-!--------------------------------------------!
-!normalizing                                 !
-soma=0.d0                                    !
-do i=0,n-1                                   !
-  soma=soma+dconjg(wf0(i))*wf0(i)            !
-end do                                       !
-wf0=wf0/sqrt(soma)                           !
-!--------------------------------------------!
-!$ ompt1 = omp_get_wtime()
-write(100,*) 'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
-write(100,'(a35,(es15.7e3))')'normalization constant =',soma
-write(100,'(a35,(es15.7e3))')'Energy of the ionizing pulse =',e_ip
-write(100,'(a35,(es15.7e3))')'Number of points in coordinate 1 =',Nq1
-write(100,'(a35,(es15.7e3))')'Number of points in coordinate 2 =',Nq2
-write(100,'(a35,(es15.7e3))')'Number of states =',Nst
-write(100,'(a35,(3es9.1e3))')'Orientation of the probing electric field =',orientation
-write(100,'(a35,(es15.7e3))')'Time where the probing electric field is centered =',t00
-write(100,'(a35,(es15.7e3))')'Phase of the probing electric field =',phase
-write(100,'(a35,(es15.7e3))')'Energy of the probing electric field =',freq
-write(100,'(a35,(es15.7e3))')'Duration of the probing electric field (sigma) =',sig
-write(100,'(a35,(es15.7e3))')'Intensity of the probing electric field =',E00
+write(100,'(a50,(es15.7e3))')'Energy of the ionizing pulse =',e_ip
+write(100,'(a50,(es15.7e3))')'Number of points in coordinate 1 =',Nq1
+write(100,'(a50,(es15.7e3))')'Number of points in coordinate 2 =',Nq2
+write(100,'(a50,(es15.7e3))')'Number of states =',Nst
+write(100,'(a50,(3es9.1e3))')'Orientation of the probing electric field =',orientation
+write(100,'(a50,(es15.7e3))')'Time where the probing electric field is centered =',t00
+write(100,'(a50,(es15.7e3))')'Phase of the probing electric field =',phase
+write(100,'(a50,(es15.7e3))')'Energy of the probing electric field =',freq
+write(100,'(a50,(es15.7e3))')'Duration of the probing electric field (sigma) =',sig
+write(100,'(a50,(es15.7e3))')'Intensity of the probing electric field =',E00
 write(100,*)''
-write(100,'(a61)')'Inital state of the cation after a sudden ionization defined'
+write(100,'(a)')'Inital state of the cation after a sudden ionization defined'
+write(100,*)''
 
 
 !$ tt0 = omp_get_wtime()
 call angular_momentum(wf0,n,am)
 !$ tt1 = omp_get_wtime()
 
+allocate ( wf1(0:Nst*Nq1*Nq2-1) )
+wf1=dcmplx(0.d0,0.d0)
 
 !--------------------------------------------------------!
 !Checking initial energy and momentum                    !
 !$ ompt0 = omp_get_wtime()                               !
-call HA_calc(tt,wf0,n,pice,tstep) !evaluating y'(t=0,y)  !
+call HA_calc(t0,wf0,n,wf1,tstep) !evaluating y'(t=0,y)   !
 !$ ompt1 = omp_get_wtime()                               !
 !$ start_time = omp_get_wtime()                          !
 call momentum_calc_q1(wf0,mom,n) ! evaluating dydq       !
@@ -205,9 +166,9 @@ L1=0.d0                                                  !
 L2=0.d0                                                  !
 L3=0.d0                                                  !
 do i=0,s-1                                               !
-  soma1=soma1 + dconjg(wf0(i)) * pice(i)*im              !
-  soma2=soma2 + dconjg(wf0(i+s)) * pice(i+s)*im          !
-  soma3=soma3 + dconjg(wf0(i+2*s)) * pice(i+2*s)*im      !
+  soma1=soma1 + dconjg(wf0(i)) * wf1(i)*im               !
+  soma2=soma2 + dconjg(wf0(i+s)) * wf1(i+s)*im           !
+  soma3=soma3 + dconjg(wf0(i+2*s)) * wf1(i+2*s)*im       !
   p1q1=p1q1 + dconjg(wf0(i)) * mom(i)                    !
   p2q1=p2q1 + dconjg(wf0(i+s)) * mom(i+s)                !
   p3q1=p3q1 + dconjg(wf0(i+2*s)) * mom(i+2*s)            !
@@ -229,12 +190,12 @@ write(100,*)'###################################################################
 write(100,*)'Time the program took to do the operation H|Psi> is:',(ompt1-ompt0), "seconds"
 write(100,*)'Be ready to wait probably ', npoints*(tt1-tt0+(stop_time-start_time)*2.d0+(ompt1-ompt0)*5.d0)/(3600.d0) , "hours"
 write(100,*)'##############################################################################'
-write(100,'(a35,3(f23.15))')'initial angular momentum = ',L1,L2,L3,L1+L2+L3
-write(100,'(a35,(f23.15),a8)')'inital energy =',soma1+soma2+soma3,' hartree'
-write(100,'(a35,(f23.15))')'initial 1 / dq1 =',1.d0/sq1
-write(100,'(a35,(f23.15))')'initial 1 / dq2 =',1.d0/sq2
+write(100,'(a30,3(f23.15))')'initial angular momentum = ',L1,L2,L3,L1+L2+L3
+write(100,'(a30,(f23.15),a8)')'inital energy =',soma1+soma2+soma3,' hartree'
+write(100,'(a30,(f23.15))')'initial 1 / dq1 =',1.d0/sq1
+write(100,'(a30,(f23.15))')'initial 1 / dq2 =',1.d0/sq2
 !write(100,'(a35,(f23.15))')'initial k * dq =',dsqrt(2*mtotal*e0)*sq1*sq2 
-write(100,'(a35,(f23.15),a4)')'vibrational frequency =',w,' au.'
+!write(100,'(a35,(f23.15),a4)')'vibrational frequency =',w,' au.'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! nanoseconds = 1d-9 seconds
 ! picoseconds = 1d-12 seconds
@@ -266,7 +227,6 @@ character(len=23) :: fname
 !real(kind=dp)     :: st1n(npoints),st1p(npoints),st2n(npoints),st2p(npoints),st3n(npoints),st3p(npoints)
 !real(kind=dp)     :: st1ncount,st1pcount,st2ncount,st2pcount,st3ncount,st3pcount,pop1,pop2,pop3
 
-
 !open(unit=10,file='norms-time.data',status='unknown')
 !open(unit=11,file='momentum-time.data',status='unknown')
 !open(unit=12,file='electric-field-time.data',status='unknown')
@@ -275,9 +235,9 @@ character(len=23) :: fname
 open(unit=15,file='alldata.data',status='unknown')
 
 t=t0
-write(100,'(a27,f23.15,a4)')'time step =',h,' au.'
-write(100,'(a27,f23.15)')'step size in coordinate 1 =',sq1
-write(100,'(a27,f23.15)')'step size in coordinate 2 =',sq2
+write(100,'(a30,f23.15,a4)')'time step =',h,' au.'
+write(100,'(a30,f23.15)')'step size in coordinate 1 =',sq1
+write(100,'(a30,f23.15)')'step size in coordinate 2 =',sq2
 
 !--------------------------------------------------------!
 !Checking momentum and saving norm                       !
@@ -327,13 +287,13 @@ aux2=Te
 !nst3(1)=0.d0
 !enert(1)=Te
 write(15,'(a3,3(e26.14e3))')'# ',e1,e2,e3
-write(15,*) '# time, Pulse, norm1, norm2, norm3, E1, E2, E3, angular momentum st1, angular momentum st2, angular momentum st3,&
+write(15,'(a)') '# time, Pulse, norm1, norm2, norm3, E1, E2, E3, angular momentum st1, angular momentum st2, angular momentum st3,&
 linear momentum in q1 st1, linear momentum in q2 st1, linear momentum in q1 st2, linear momentum in q2 st2,&
 linear momentum in q1 st3, linear momentum in q2 st3'
 Et=(E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
 write(15,'(17(es26.16e3))')t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
 !=================================================================!
-!saving inital wave function                                      ! 
+!saving inital wave function for plotting reasons                 ! 
 fname='amp-time-st1-000001.dat'                                   !
 open(unit=20,file=fname,status='unknown')                         !
 fname='amp-real-st1-000001.dat'                                   !
@@ -353,15 +313,15 @@ open(unit=90,file=fname,status='unknown')                         !
 fname='amp-imag-st3-000001.dat'                                   !
 open(unit=99,file=fname,status='unknown')                         !
 do i=0,s-1                                                        !
-  write(20,'(3(es26.16e3))') real(dconjg(y(i))*y(i))              !
-  write(30,'(3(es26.16e3))') (  real(y(i)) )                      !
-  write(40,'(3(es26.16e3))') ( aimag(y(i)) )                      !
-  write(50,'(3(es26.16e3))') real(dconjg(y(1*s+i))*y(1*s+i))      !
-  write(60,'(3(es26.16e3))') (  real(y(1*s+i)) )                  !
-  write(70,'(3(es26.16e3))') ( aimag(y(1*s+i)) )                  !
-  write(80,'(3(es26.16e3))') real(dconjg(y(2*s+i)) * y(2*s+i))    !
-  write(90,'(3(es26.16e3))') (  real(y(2*s+i)) )                  !
-  write(99,'(3(es26.16e3))') ( aimag(y(2*s+i)) )                  !
+  write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))              !
+  write(30,'(3(es26.16e3))') ( dreal(y(i)) )                      !
+  write(40,'(3(es26.16e3))') ( dimag(y(i)) )                      !
+  write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))      !
+  write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )                  !
+  write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )                  !
+  write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))    !
+  write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )                  !
+  write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )                  !
 end do                                                            !
 close(unit=20)                                                    !
 close(unit=30)                                                    !
@@ -376,8 +336,9 @@ close(unit=99)                                                    !
 write(100,*) '************************************************************'
 write(100,*) 'Integrating amplitudes over time'
 write(100,*) '************************************************************'
-write(100,*) 'time ,   Pulse  ,     E1    ,    E2     ,    E3     ,   ET-E0   ,   norm1   ,   norm2   ,   norm3   , NormT-1   &
-,   Ltot    '
+write(100,'(a)') '   time  ,   Pulse   ,     E1    ,    E2     ,    E3     ,   ET-E0   ,   norm1   ,   norm2   ,   norm3   &
+, NormT-1   ,   Ltot    '
+write(100,'(i9,11(e12.3e3))') t-h,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
 ii=0;gg=1
 do ll=1,1000 ! for saving 1000 time samples
   gg=gg+1
@@ -487,15 +448,15 @@ momq2t(ii)=pq2_1+pq2_2+pq2_3
   write(fname(14:19),'(i0.6)') gg
   open(unit=99,file=fname,status='unknown')
   do i=0,s-1
-    write(20,'(3(es26.16e3))') real(dconjg(y(i))*y(i))
-    write(30,'(3(es26.16e3))') (  real(y(i)) )
-    write(40,'(3(es26.16e3))') ( aimag(y(i)) )
-    write(50,'(3(es26.16e3))') real(dconjg(y(1*s+i))*y(1*s+i))
-    write(60,'(3(es26.16e3))') (  real(y(1*s+i)) )
-    write(70,'(3(es26.16e3))') ( aimag(y(1*s+i)) )
-    write(80,'(3(es26.16e3))') real(dconjg(y(2*s+i)) * y(2*s+i))
-    write(90,'(3(es26.16e3))') (  real(y(2*s+i)) )
-    write(99,'(3(es26.16e3))') ( aimag(y(2*s+i)) )
+    write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))
+    write(30,'(3(es26.16e3))') ( dreal(y(i)) )
+    write(40,'(3(es26.16e3))') ( dimag(y(i)) )
+    write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))
+    write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )
+    write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )
+    write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))
+    write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )
+    write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )
   end do
   close(unit=20)
   close(unit=30)
@@ -515,7 +476,7 @@ Et = (E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00
 !  write(14,'(3(es26.16e3))') L1,L2,L3
   write(15,'(17(es26.16e3))') t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
 !  tt(ii)=t !saving time value for each step in time
-  write(100,'(i9,11(e12.3e3))') ii,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
+  write(100,'(i9,11(e12.3e3))') t-h,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
   !WRITE(6,'(5(A))',ADVANCE="NO") "\b","\b","\b","\b","b"
   !write(6,'(f5.1,"%")',advance='no') ii/10.d0
   !flush(6)
@@ -887,115 +848,3 @@ end do
 !$OMP end parallel do
 end subroutine angular_momentum
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-!Function that calculates the photoionization amplitudes for a given geometry and a given electric field
-!Some parts of this function assumes that the number of electronic states is 3
-subroutine p_i_a(i1,i2,pic)
-use global_param
-implicit none
-complex(kind=dp),dimension(Nst) :: pic
-integer                         :: i1,i2,ii,jj,kk
-character(len=21)               :: fname00
-character(len=199)              :: fpath0,fpath1
-integer                         :: file1,file2,file3,file4,file5
-integer,parameter               :: nang=512
-integer,parameter               :: nk=256
-real(kind=dp),allocatable       :: vec1(:,:),vec2(:,:),vec3(:,:)
-real(kind=dp)                   :: k0,k1,k2,e0,e1,e2,p_e(nk)
-real(kind=dp)                   :: phi(nang),theta(nang),domega
-complex(kind=dp),allocatable    :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),coef1(:,:),coef2(:,:)
-real(kind=dp)                   :: ip0,ip1,ip2
-integer                         :: aux1(Nst)
-real(kind=dp)                   :: aux2(Nst)
-
-allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
-allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
-call getcwd(fpath0) !getting the working directory path
-fname00='pice_10000000_0_0.txt'
-write(fname00(7:9),'(i0.3)') i2+100
-write(fname00(12:13),'(i0.2)') i1
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file1,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 1
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file2,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 2
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file3,file=fpath1,status='old')
-!now read the x, y and z components of the photoionization coupling elements.
-do ii=1,nk*nang
-  read(file1,*) vec1(ii,:)!,vec1(i,2),vec1(i,3),vec1(i,4),vec1(i,5),vec1(i,6)
-  read(file2,*) vec2(ii,:)!,vec2(i,2),vec2(i,3),vec2(i,4),vec2(i,5),vec2(i,6)
-  read(file3,*) vec3(ii,:)!,vec3(i,2),vec3(i,3),vec3(i,4),vec3(i,5),vec3(i,6)
-end do
-kk=1
-do ii=1,nk
-  do jj=1,nang
-    r0(ii,jj,1)=dcmplx( vec1(kk,1) , vec1(kk,2) )
-    r0(ii,jj,2)=dcmplx( vec1(kk,3) , vec1(kk,4) )
-    r0(ii,jj,3)=dcmplx( vec1(kk,5) , vec1(kk,6) )
-    r1(ii,jj,1)=dcmplx( vec2(kk,1) , vec2(kk,2) )
-    r1(ii,jj,2)=dcmplx( vec2(kk,3) , vec2(kk,4) )
-    r1(ii,jj,3)=dcmplx( vec2(kk,5) , vec2(kk,6) )
-    r2(ii,jj,1)=dcmplx( vec3(kk,1) , vec3(kk,2) )
-    r2(ii,jj,2)=dcmplx( vec3(kk,3) , vec3(kk,4) )
-    r2(ii,jj,3)=dcmplx( vec3(kk,5) , vec3(kk,6) )
-    kk=kk+1
-  end do
-end do
-
-open(newunit=file4,file='test_sym_dist3.txt',status='old')
-do ii=1,nang
-  read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
-end do
-
-ip0 = pot1(i1+27,i2+20) - e_neut !ionization potential for ground state of the cation
-ip1 = pot2(i1+27,i2+20) - e_neut !ionization potential for first excited state of the cation
-ip2 = pot3(i1+27,i2+20) - e_neut !ionization potential for second excited state of the cation
-e0 = e_ip - ip0 !Energy of the ionized electron if the molecule goes for the cation ground state
-e1 = e_ip - ip1 !Energy of the ionized electron if the molecule goes for the cation first excited state
-e2 = e_ip - ip2 !Energy of the ionized electron if the molecule goes for the cation second excited state
-
-domega=4*pi/nang
-coef0=0.d0
-coef1=0.d0
-coef2=0.d0
-do ii=1,nk
-  do jj=1,nang
-    coef0(ii,1) = coef0(ii,1) + r0(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef0(ii,2) = coef0(ii,2) + r0(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef0(ii,3) = coef0(ii,3) + r0(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,1) = coef1(ii,1) + r1(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,2) = coef1(ii,2) + r1(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,3) = coef1(ii,3) + r1(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,1) = coef2(ii,1) + r2(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,2) = coef2(ii,2) + r2(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,3) = coef2(ii,3) + r2(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-  end do
-  p_e(ii) = 0.005859375d0 + (ii-1) * 0.00588235294117647d0 !Momentum values in which the photoionization matrix elements are spanned
-end do
-
-!define the correct i, the correct momentum of the electron
-aux2 = e_ip
-do ii=1,nk
-  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
-    aux1(1) = ii !Defining the value of the momentum of the leaving electron
-    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
-  end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
-    aux1(2) = ii !Defining the value of the momentum of the leaving electron
-    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
-  end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
-    aux1(3) = ii !Defining the value of the momentum of the leaving electron
-    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
-  end if
-end do
-
-!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
-pic(1) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef0(aux1(1),:) )
-pic(2) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef1(aux1(2),:) )
-pic(3) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef2(aux1(3),:) )
-
-end subroutine p_i_a
-
