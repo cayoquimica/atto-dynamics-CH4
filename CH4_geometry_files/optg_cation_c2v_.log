@@ -1,0 +1,1047 @@
+
+ Running default procedure: MULTI000
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+
+ MCSCF information from       5000.1
+ Orbitals from record         2140.2
+
+ Number of closed-shell orbitals:  1 (  1 )
+ Number of active orbitals:        8 (  8 )
+ Number of occupied orbitals:      9 (  9 )
+
+ Number of electrons=  9     Doublet     Space symmetry=1      Wavefunction type: MCSCF           
+
+
+ MC GRADIENT FOR STATE 1.1
+
+ Atom          dE/dx               dE/dy               dE/dz
+
+   1         0.000000000         0.000000000        -0.013522373
+   2         0.000855608         0.000855608         0.007545671
+   3        -0.000855608        -0.000855608         0.007545671
+   4         0.000335244        -0.000335244        -0.000784484
+   5        -0.000335244         0.000335244        -0.000784484
+
+ Nuclear force contribution to virial =         0.037245331
+ Reading points  1 to  1 from record 700.2,  wavefunction type=MULTI000        
+
+ Making model hessian for cartesian coordinates
+ No hessian update for point  1
+
+ Quadratic Steepest Descent - Minimum Search
+
+ Optimization point  1
+
+ Variable                      Last           Current        Next           Gradient       Hessian
+ E(MULTI000) / Hartree       0.00000000   -39.84286785     0.00000000
+ GX1 / ANGSTROM              0.00000000     0.00000000     0.00000000     0.00000000    -0.00000000
+ GY1 / ANGSTROM              0.00000000     0.00000000    -0.00000000     0.00000000    -0.00000000
+ GZ1 / ANGSTROM              0.00000000    -0.07904006    -0.07418765    -0.02555358    -0.00000000
+ GX2 / ANGSTROM              0.00000000     0.37215897     0.37546282     0.00161687    -0.00000000
+ GY2 / ANGSTROM              0.00000000     0.37215897     0.37546282     0.00161687    -0.00000000
+ GZ2 / ANGSTROM              0.00000000     1.03068232     1.01850436     0.01425925     0.00000000
+ GX3 / ANGSTROM              0.00000000    -0.37215897    -0.37546282    -0.00161687     0.12894122
+ GY3 / ANGSTROM              0.00000000    -0.37215897    -0.37546282    -0.00161687     0.32537185
+ GZ3 / ANGSTROM              0.00000000     1.03068232     1.01850436     0.01425925     0.37386688
+ GX4 / ANGSTROM              0.00000000     0.69671557     0.69772569     0.00063352     0.79721073
+ GY4 / ANGSTROM              0.00000000    -0.69671557    -0.69772569    -0.00063352     1.13832560
+ GZ4 / ANGSTROM              0.00000000    -0.55974645    -0.54999469    -0.00148246     1.53488688
+ GX5 / ANGSTROM              0.00000000    -0.69671557    -0.69772569    -0.00063352     4.39244603
+ GY5 / ANGSTROM              0.00000000     0.69671557     0.69772569     0.00063352     4.66845010
+ GZ5 / ANGSTROM              0.00000000    -0.55974645    -0.54999469    -0.00148246     6.18902413
+ Convergence:                0.00000000  (line search)     0.04464269     0.01735908  (total)
+
+ Geometry written to block  2 of record 700
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  2 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00    0.000000000   -0.000000000   -0.140194338
+   2  H       1.00    0.709521907    0.709521907    1.924694298
+   3  H       1.00   -0.709521908   -0.709521907    1.924694298
+   4  H       1.00    1.318510464   -1.318510464   -1.039339346
+   5  H       1.00   -1.318510464    1.318510464   -1.039339346
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.295780424  1-3  2.295780424  1-4  2.070121115  1-5  2.070121115
+     ( 1.214874677)     ( 1.214874677)     ( 1.095460914)     ( 1.095460914)
+
+ Bond angles
+
+  2-1-3   51.83409991   2-1-4  112.99564678   2-1-5  112.99564678   3-1-4  112.99564678
+
+  3-1-5  112.99564678   4-1-5  128.51286238
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   12.88827310
+
+
+ Eigenvalues of metric
+
+         1 0.683E-02 0.796E-02 0.837E-02 0.995E-02 0.122E-01 0.195E-01 0.303E-01 0.330E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.913 MB (compressed) written to integral file ( 53.4%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1494338. INTEGRALS IN      5 RECORDS. CPU TIME:     0.00 SEC, REAL TIME:     0.03 SEC
+ SORT2 READ     1494338. AND WROTE     1567335. INTEGRALS IN     34 RECORDS. CPU TIME:     0.06 SEC, REAL TIME:     0.06 SEC
+
+ FILE SIZES:   FILE 1:    16.6 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.6 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        1
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL (state 1.1)
+
+ Wavefunction dump at record             2140.2
+
+ Convergence thresholds  0.10E-04 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:       4378
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   18   24    0     -39.84316877     -39.84320295   -0.00003418    0.00893731 0.00000016 0.00000053  0.10D-01      0.19
+   2   18    6    0     -39.84320294     -39.84320294   -0.00000000    0.00000490 0.00000004 0.00000028  0.93D-05      0.30
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.54D-07
+
+ Gradient information for state 1.1 saved on record      5000.1
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.2 (density set 1)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.843202944513
+ Nuclear energy                        12.88827310
+ Kinetic energy                        39.81408765
+ One electron energy                  -74.91343502
+ Two electron energy                   22.18195898
+ Virial ratio                           2.00073128
+
+ !MCSCF STATE 1.1 Dipole moment         0.00000000    -0.00000000     0.70318714
+ Dipole moment /Debye                   0.00000000    -0.00000000     1.78720638
+
+
+ Natural orbital dump at molpro section  2140.2    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.53       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
+                                         5000   
+                                        MCGRAD    
+
+              2       5        0.61       700     1000      520     2100     2140   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF   
+
+ PROGRAMS   *        TOTAL     MULTI     MULTI        HF       INT
+ CPU TIMES  *         2.55      0.54      0.64      0.16      0.18
+ REAL TIME  *         3.28 SEC
+ DISK USED  *        38.28 MB      
+ **********************************************************************************************************************************
+
+ PROGRESS OF GEOMETRY OPTIMIZATION.    TOTAL CPU:         1.5 SEC
+   1   -39.84286785   -39.84320294    -0.00033510  0.01514287  0.01735908  0.00192879  0.03926678  0.04464269  0.01996482
+
+ **********************************************************************************************************************************
+
+ Current geometry (xyz format, in Angstrom)
+
+    5
+ MULTI000/6-31++G(2D,2P)  ENERGY=-39.84320294
+ C          0.0000000000       -0.0000000000       -0.0741876486
+ H          0.3754628227        0.3754628227        1.0185043568
+ H         -0.3754628227       -0.3754628227        1.0185043568
+ H          0.6977256875       -0.6977256875       -0.5499946941
+ H         -0.6977256875        0.6977256875       -0.5499946941
+
+ **********************************************************************************************************************************
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+
+ MCSCF information from       5000.1
+ Orbitals from record         2140.2
+
+ Number of closed-shell orbitals:  1 (  1 )
+ Number of active orbitals:        8 (  8 )
+ Number of occupied orbitals:      9 (  9 )
+
+ Number of electrons=  9     Doublet     Space symmetry=1      Wavefunction type: MCSCF           
+
+
+ MC GRADIENT FOR STATE 1.1
+
+ Atom          dE/dx               dE/dy               dE/dz
+
+   1         0.000000000        -0.000000000        -0.008200198
+   2         0.000298587         0.000298587         0.003344065
+   3        -0.000298587        -0.000298587         0.003344065
+   4         0.000399552        -0.000399552         0.000756034
+   5        -0.000399552         0.000399552         0.000756034
+
+ Nuclear force contribution to virial =         0.015405346
+ Reading points  1 to  2 from record 700.2,  wavefunction type=MULTI000        
+
+ Making model hessian for cartesian coordinates
+ BFGS update of hessian using  1 points
+
+ Quadratic Steepest Descent - Minimum Search
+
+ Optimization point  2
+
+ Variable                      Last           Current        Next           Gradient       Hessian
+ E(MULTI000) / Hartree     -39.84286785   -39.84320294     0.00000000
+ GX1 / ANGSTROM              0.00000000     0.00000000    -0.00000000     0.00000000    -0.00000000
+ GY1 / ANGSTROM              0.00000000    -0.00000000     0.00000000    -0.00000000    -0.00000000
+ GZ1 / ANGSTROM             -0.07904006    -0.07418765    -0.06692104    -0.01549613    -0.00000000
+ GX2 / ANGSTROM              0.37215897     0.37546282     0.37775801     0.00056425    -0.00000000
+ GY2 / ANGSTROM              0.37215897     0.37546282     0.37775801     0.00056425    -0.00000000
+ GZ2 / ANGSTROM              1.03068232     1.01850436     1.01162467     0.00631937    -0.00000000
+ GX3 / ANGSTROM             -0.37215897    -0.37546282    -0.37775801    -0.00056425     0.13796428
+ GY3 / ANGSTROM             -0.37215897    -0.37546282    -0.37775801    -0.00056425     0.34211777
+ GZ3 / ANGSTROM              1.03068232     1.01850436     1.01162467     0.00631937     0.37810608
+ GX4 / ANGSTROM              0.69671557     0.69772569     0.69601114     0.00075504     0.81409668
+ GY4 / ANGSTROM             -0.69671557    -0.69772569    -0.69601114    -0.00075504     1.19163978
+ GZ4 / ANGSTROM             -0.55974645    -0.54999469    -0.54674831     0.00142870     1.55868022
+ GX5 / ANGSTROM             -0.69671557    -0.69772569    -0.69601114    -0.00075504     4.52492726
+ GY5 / ANGSTROM              0.69671557     0.69772569     0.69601114     0.00075504     4.70862509
+ GZ5 / ANGSTROM             -0.55974645    -0.54999469    -0.54674831     0.00142870     6.55380548
+ Convergence:                0.00000000  (line search)     0.02681628     0.00957847  (total)
+
+ Geometry written to block  3 of record 700
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  3 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00   -0.000000000    0.000000000   -0.126462447
+   2  H       1.00    0.713859188    0.713859188    1.911693569
+   3  H       1.00   -0.713859188   -0.713859188    1.911693569
+   4  H       1.00    1.315270440   -1.315270440   -1.033204563
+   5  H       1.00   -1.315270440    1.315270440   -1.033204563
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.274482321  1-3  2.274482321  1-4  2.069312428  1-5  2.069312428
+     ( 1.203604206)     ( 1.203604206)     ( 1.095032975)     ( 1.095032975)
+
+ Bond angles
+
+  2-1-3   52.70071621   2-1-4  113.11988411   2-1-5  113.11988411   3-1-4  113.11988411
+
+  3-1-5  113.11988411   4-1-5  128.02370384
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   12.94202306
+
+
+ Eigenvalues of metric
+
+         1 0.671E-02 0.789E-02 0.839E-02 0.986E-02 0.120E-01 0.197E-01 0.298E-01 0.327E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.913 MB (compressed) written to integral file ( 53.5%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1494370. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.03 SEC
+ SORT2 READ     1494370. AND WROTE     1567335. INTEGRALS IN     34 RECORDS. CPU TIME:     0.04 SEC, REAL TIME:     0.06 SEC
+
+ FILE SIZES:   FILE 1:    16.6 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.6 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        1
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL (state 1.1)
+
+ Wavefunction dump at record             2140.2
+
+ Convergence thresholds  0.10E-04 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:       4378
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   17   25    0     -39.84328520     -39.84330817   -0.00002297    0.00748993 0.00000019 0.00000063  0.81D-02      0.18
+   2   18    7    0     -39.84330817     -39.84330817   -0.00000000    0.00000334 0.00000004 0.00000024  0.65D-05      0.28
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.47D-07
+
+ Gradient information for state 1.1 saved on record      5000.1
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.2 (density set 1)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.843308168075
+ Nuclear energy                        12.94202306
+ Kinetic energy                        39.83245624
+ One electron energy                  -75.01016928
+ Two electron energy                   22.22483805
+ Virial ratio                           2.00027244
+
+ !MCSCF STATE 1.1 Dipole moment         0.00000000    -0.00000000     0.70312693
+ Dipole moment /Debye                   0.00000000    -0.00000000     1.78705334
+
+
+ Natural orbital dump at molpro section  2140.2    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.54       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
+                                         5000   
+                                        MCGRAD    
+
+              2       5        0.61       700     1000      520     2100     2140   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF   
+
+ PROGRAMS   *        TOTAL     MULTI     MULTI        HF       INT
+ CPU TIMES  *         4.01      0.54      0.64      0.16      0.18
+ REAL TIME  *         4.81 SEC
+ DISK USED  *        38.28 MB      
+ **********************************************************************************************************************************
+
+ PROGRESS OF GEOMETRY OPTIMIZATION.    TOTAL CPU:         2.9 SEC
+   1   -39.84286785   -39.84320294    -0.00033510  0.01514287  0.01735908  0.00192879  0.03926678  0.04464269  0.01996482
+   2   -39.84320294   -39.84330817    -0.00010522  0.00892091  0.00957847  0.00106427  0.01580820  0.02681628  0.01199261
+
+ **********************************************************************************************************************************
+
+ Current geometry (xyz format, in Angstrom)
+
+    5
+ MULTI000/6-31++G(2D,2P)  ENERGY=-39.84330817
+ C         -0.0000000000        0.0000000000       -0.0669210446
+ H          0.3777580127        0.3777580127        1.0116246675
+ H         -0.3777580127       -0.3777580127        1.0116246675
+ H          0.6960111403       -0.6960111403       -0.5467483067
+ H         -0.6960111403        0.6960111403       -0.5467483067
+
+ **********************************************************************************************************************************
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+
+ MCSCF information from       5000.1
+ Orbitals from record         2140.2
+
+ Number of closed-shell orbitals:  1 (  1 )
+ Number of active orbitals:        8 (  8 )
+ Number of occupied orbitals:      9 (  9 )
+
+ Number of electrons=  9     Doublet     Space symmetry=1      Wavefunction type: MCSCF           
+
+
+ MC GRADIENT FOR STATE 1.1
+
+ Atom          dE/dx               dE/dy               dE/dz
+
+   1        -0.000000000         0.000000000        -0.001575319
+   2        -0.000538802        -0.000538802        -0.000151955
+   3         0.000538802         0.000538802        -0.000151955
+   4         0.000201810        -0.000201810         0.000939615
+   5        -0.000201810         0.000201810         0.000939615
+
+ Nuclear force contribution to virial =        -0.002800173
+ Reading points  1 to  3 from record 700.2,  wavefunction type=MULTI000        
+
+ Making model hessian for cartesian coordinates
+ BFGS update of hessian using  2 points
+
+ Quadratic Steepest Descent - Minimum Search
+
+ Optimization point  3
+
+ Variable                      Last           Current        Next           Gradient       Hessian
+ E(MULTI000) / Hartree     -39.84320294   -39.84330817     0.00000000
+ GX1 / ANGSTROM              0.00000000    -0.00000000    -0.00000000    -0.00000000    -0.00000000
+ GY1 / ANGSTROM             -0.00000000     0.00000000     0.00000000     0.00000000    -0.00000000
+ GZ1 / ANGSTROM             -0.07418765    -0.06692104    -0.06444144    -0.00297692    -0.00000000
+ GX2 / ANGSTROM              0.37546282     0.37775801     0.37918573    -0.00101819     0.00000000
+ GY2 / ANGSTROM              0.37546282     0.37775801     0.37918573    -0.00101819     0.00000000
+ GZ2 / ANGSTROM              1.01850436     1.01162467     1.01198453    -0.00028715     0.00000000
+ GX3 / ANGSTROM             -0.37546282    -0.37775801    -0.37918573     0.00101819     0.14638293
+ GY3 / ANGSTROM             -0.37546282    -0.37775801    -0.37918573     0.00101819     0.35918271
+ GZ3 / ANGSTROM              1.01850436     1.01162467     1.01198453    -0.00028715     0.38213689
+ GX4 / ANGSTROM              0.69772569     0.69601114     0.69468998     0.00038136     0.83391611
+ GY4 / ANGSTROM             -0.69772569    -0.69601114    -0.69468998    -0.00038136     1.23732191
+ GZ4 / ANGSTROM             -0.54999469    -0.54674831    -0.54834797     0.00177561     1.57420948
+ GX5 / ANGSTROM             -0.69772569    -0.69601114    -0.69468998    -0.00038136     4.66135242
+ GY5 / ANGSTROM              0.69772569     0.69601114     0.69468998     0.00038136     4.72047105
+ GZ5 / ANGSTROM             -0.54999469    -0.54674831    -0.54834797     0.00177561     6.82094843
+ Convergence:                0.00000000  (line search)     0.00975738     0.00237017  (total)
+
+ Geometry written to block  4 of record 700
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  4 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00   -0.000000000    0.000000000   -0.121776675
+   2  H       1.00    0.716557174    0.716557174    1.912373607
+   3  H       1.00   -0.716557174   -0.716557174    1.912373607
+   4  H       1.00    1.312773816   -1.312773816   -1.036227486
+   5  H       1.00   -1.312773816    1.312773816   -1.036227486
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.272592295  1-3  2.272592295  1-4  2.069533877  1-5  2.069533877
+     ( 1.202604048)     ( 1.202604048)     ( 1.095150161)     ( 1.095150161)
+
+ Bond angles
+
+  2-1-3   52.96276942   2-1-4  113.29732202   2-1-5  113.29732202   3-1-4  113.29732202
+
+  3-1-5  113.29732202   4-1-5  127.55436078
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   12.94374885
+
+
+ Eigenvalues of metric
+
+         1 0.669E-02 0.791E-02 0.842E-02 0.985E-02 0.119E-01 0.199E-01 0.296E-01 0.328E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.913 MB (compressed) written to integral file ( 53.5%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1494386. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.04 SEC
+ SORT2 READ     1494386. AND WROTE     1567335. INTEGRALS IN     34 RECORDS. CPU TIME:     0.05 SEC, REAL TIME:     0.06 SEC
+
+ FILE SIZES:   FILE 1:    16.6 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.6 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        1
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL (state 1.1)
+
+ Wavefunction dump at record             2140.2
+
+ Convergence thresholds  0.10E-04 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:       4378
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   18   25    0     -39.84332287     -39.84332453   -0.00000166    0.00226748 0.00000028 0.00000088  0.30D-02      0.18
+   2   20    7    0     -39.84332453     -39.84332453   -0.00000000    0.00000032 0.00000002 0.00000019  0.41D-05      0.28
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.31D-07
+
+ Gradient information for state 1.1 saved on record      5000.1
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.2 (density set 1)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.843324525769
+ Nuclear energy                        12.94374885
+ Kinetic energy                        39.83293416
+ One electron energy                  -75.01455509
+ Two electron energy                   22.22748171
+ Virial ratio                           2.00026085
+
+ !MCSCF STATE 1.1 Dipole moment         0.00000000     0.00000000     0.70396996
+ Dipole moment /Debye                   0.00000000     0.00000000     1.78919596
+
+
+ Natural orbital dump at molpro section  2140.2    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.54       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
+                                         5000   
+                                        MCGRAD    
+
+              2       5        0.61       700     1000      520     2100     2140   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF   
+
+ PROGRAMS   *        TOTAL     MULTI     MULTI        HF       INT
+ CPU TIMES  *         5.46      0.53      0.64      0.16      0.18
+ REAL TIME  *         6.34 SEC
+ DISK USED  *        38.28 MB      
+ **********************************************************************************************************************************
+
+ PROGRESS OF GEOMETRY OPTIMIZATION.    TOTAL CPU:         4.4 SEC
+   1   -39.84286785   -39.84320294    -0.00033510  0.01514287  0.01735908  0.00192879  0.03926678  0.04464269  0.01996482
+   2   -39.84320294   -39.84330817    -0.00010522  0.00892091  0.00957847  0.00106427  0.01580820  0.02681628  0.01199261
+   3   -39.84330817   -39.84332453    -0.00001636  0.00180446  0.00237017  0.00026335  0.00890081  0.00975738  0.00436363
+
+ **********************************************************************************************************************************
+
+ Current geometry (xyz format, in Angstrom)
+
+    5
+ MULTI000/6-31++G(2D,2P)  ENERGY=-39.84332453
+ C         -0.0000000000        0.0000000000       -0.0644414412
+ H          0.3791857255        0.3791857255        1.0119845279
+ H         -0.3791857255       -0.3791857255        1.0119845279
+ H          0.6946899839       -0.6946899839       -0.5483479689
+ H         -0.6946899839        0.6946899839       -0.5483479689
+
+ **********************************************************************************************************************************
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+
+ MCSCF information from       5000.1
+ Orbitals from record         2140.2
+
+ Number of closed-shell orbitals:  1 (  1 )
+ Number of active orbitals:        8 (  8 )
+ Number of occupied orbitals:      9 (  9 )
+
+ Number of electrons=  9     Doublet     Space symmetry=1      Wavefunction type: MCSCF           
+
+
+ MC GRADIENT FOR STATE 1.1
+
+ Atom          dE/dx               dE/dy               dE/dz
+
+   1         0.000000000         0.000000000        -0.000373170
+   2        -0.000482383        -0.000482383        -0.000345921
+   3         0.000482383         0.000482383        -0.000345921
+   4         0.000096858        -0.000096858         0.000532506
+   5        -0.000096858         0.000096858         0.000532506
+
+ Nuclear force contribution to virial =        -0.003255216
+ Reading points  1 to  4 from record 700.2,  wavefunction type=MULTI000        
+
+ Making model hessian for cartesian coordinates
+ BFGS update of hessian using  3 points
+
+ Quadratic Steepest Descent - Minimum Search
+
+ Optimization point  4
+
+ Variable                      Last           Current        Next           Gradient       Hessian
+ E(MULTI000) / Hartree     -39.84330817   -39.84332453     0.00000000
+ GX1 / ANGSTROM             -0.00000000    -0.00000000     0.00000000     0.00000000    -0.00000000
+ GY1 / ANGSTROM              0.00000000     0.00000000    -0.00000000     0.00000000    -0.00000000
+ GZ1 / ANGSTROM             -0.06692104    -0.06444144    -0.06172817    -0.00070519    -0.00000000
+ GX2 / ANGSTROM              0.37775801     0.37918573     0.38177201    -0.00091157    -0.00000000
+ GY2 / ANGSTROM              0.37775801     0.37918573     0.38177201    -0.00091157    -0.00000000
+ GZ2 / ANGSTROM              1.01162467     1.01198453     1.01317443    -0.00065370    -0.00000000
+ GX3 / ANGSTROM             -0.37775801    -0.37918573    -0.38177201     0.00091157     0.14747070
+ GY3 / ANGSTROM             -0.37775801    -0.37918573    -0.38177201     0.00091157     0.36155998
+ GZ3 / ANGSTROM              1.01162467     1.01198453     1.01317443    -0.00065370     0.37938348
+ GX4 / ANGSTROM              0.69601114     0.69468998     0.69305267     0.00018304     0.83104807
+ GY4 / ANGSTROM             -0.69601114    -0.69468998    -0.69305267    -0.00018304     1.24024217
+ GZ4 / ANGSTROM             -0.54674831    -0.54834797    -0.55089450     0.00100629     1.57324892
+ GX5 / ANGSTROM             -0.69601114    -0.69468998    -0.69305267    -0.00018304     4.68099378
+ GY5 / ANGSTROM              0.69601114     0.69468998     0.69305267     0.00018304     4.71056904
+ GZ5 / ANGSTROM             -0.54674831    -0.54834797    -0.55089450     0.00100629     6.81594268
+ Convergence:                0.00000000  (line search)     0.01471586     0.00138347  (total)
+
+ Geometry written to block  5 of record 700
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  5 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00    0.000000000   -0.000000000   -0.116649340
+   2  H       1.00    0.721444549    0.721444549    1.914622192
+   3  H       1.00   -0.721444549   -0.721444549    1.914622192
+   4  H       1.00    1.309679732   -1.309679732   -1.041039739
+   5  H       1.00   -1.309679732    1.309679732   -1.041039739
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.273109876  1-3  2.273109876  1-4  2.070028891  1-5  2.070028891
+     ( 1.202877940)     ( 1.202877940)     ( 1.095412111)     ( 1.095412111)
+
+ Bond angles
+
+  2-1-3   53.33935915   2-1-4  113.51876016   2-1-5  113.51876016   3-1-4  113.51876016
+
+  3-1-5  113.51876016   4-1-5  126.95372457
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   12.93680335
+
+
+ Eigenvalues of metric
+
+         1 0.668E-02 0.799E-02 0.846E-02 0.986E-02 0.119E-01 0.201E-01 0.293E-01 0.330E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.913 MB (compressed) written to integral file ( 53.5%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1494392. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.02 SEC
+ SORT2 READ     1494392. AND WROTE     1567335. INTEGRALS IN     34 RECORDS. CPU TIME:     0.04 SEC, REAL TIME:     0.05 SEC
+
+ FILE SIZES:   FILE 1:    16.6 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.6 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        1
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL (state 1.1)
+
+ Wavefunction dump at record             2140.2
+
+ Convergence thresholds  0.10E-04 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:       4378
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   18   25    0     -39.84333041     -39.84333470   -0.00000429    0.00374697 0.00000048 0.00000150  0.45D-02      0.18
+   2   20    7    0     -39.84333470     -39.84333470   -0.00000000    0.00000064 0.00000005 0.00000030  0.63D-05      0.28
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.56D-07
+
+ Gradient information for state 1.1 saved on record      5000.1
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.2 (density set 1)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.843334704300
+ Nuclear energy                        12.93680335
+ Kinetic energy                        39.83039625
+ One electron energy                  -75.00455542
+ Two electron energy                   22.22441736
+ Virial ratio                           2.00032484
+
+ !MCSCF STATE 1.1 Dipole moment         0.00000000     0.00000000     0.70491931
+ Dipole moment /Debye                   0.00000000     0.00000000     1.79160881
+
+
+ Natural orbital dump at molpro section  2140.2    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.54       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
+                                         5000   
+                                        MCGRAD    
+
+              2       5        0.61       700     1000      520     2100     2140   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF   
+
+ PROGRAMS   *        TOTAL     MULTI     MULTI        HF       INT
+ CPU TIMES  *         6.89      0.51      0.64      0.16      0.18
+ REAL TIME  *         7.87 SEC
+ DISK USED  *        38.28 MB      
+ **********************************************************************************************************************************
+
+ PROGRESS OF GEOMETRY OPTIMIZATION.    TOTAL CPU:         5.8 SEC
+   1   -39.84286785   -39.84320294    -0.00033510  0.01514287  0.01735908  0.00192879  0.03926678  0.04464269  0.01996482
+   2   -39.84320294   -39.84330817    -0.00010522  0.00892091  0.00957847  0.00106427  0.01580820  0.02681628  0.01199261
+   3   -39.84330817   -39.84332453    -0.00001636  0.00180446  0.00237017  0.00026335  0.00890081  0.00975738  0.00436363
+   4   -39.84332453   -39.84333470    -0.00001018  0.00125199  0.00138347  0.00015372  0.01420676  0.01471586  0.00658113
+
+ **********************************************************************************************************************************
+
+ Current geometry (xyz format, in Angstrom)
+
+    5
+ MULTI000/6-31++G(2D,2P)  ENERGY=-39.84333470
+ C          0.0000000000       -0.0000000000       -0.0617281721
+ H          0.3817720127        0.3817720127        1.0131744279
+ H         -0.3817720127       -0.3817720127        1.0131744279
+ H          0.6930526654       -0.6930526653       -0.5508945035
+ H         -0.6930526653        0.6930526653       -0.5508945035
+
+ **********************************************************************************************************************************
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+
+ MCSCF information from       5000.1
+ Orbitals from record         2140.2
+
+ Number of closed-shell orbitals:  1 (  1 )
+ Number of active orbitals:        8 (  8 )
+ Number of occupied orbitals:      9 (  9 )
+
+ Number of electrons=  9     Doublet     Space symmetry=1      Wavefunction type: MCSCF           
+
+
+ MC GRADIENT FOR STATE 1.1
+
+ Atom          dE/dx               dE/dy               dE/dz
+
+   1         0.000000000        -0.000000000         0.000247701
+   2        -0.000121313        -0.000121313        -0.000094436
+   3         0.000121313         0.000121313        -0.000094436
+   4        -0.000006685         0.000006685        -0.000029414
+   5         0.000006685        -0.000006685        -0.000029414
+
+ Nuclear force contribution to virial =        -0.000714376
+ Reading points  1 to  5 from record 700.2,  wavefunction type=MULTI000        
+
+ Making model hessian for cartesian coordinates
+ BFGS update of hessian using  4 points
+
+ Quadratic Steepest Descent - Minimum Search
+
+ Optimization point  5
+
+ Variable                      Last           Current        Next           Gradient       Hessian
+ E(MULTI000) / Hartree     -39.84332453   -39.84333470     0.00000000
+ GX1 / ANGSTROM             -0.00000000     0.00000000    -0.00000000     0.00000000    -0.00000000
+ GY1 / ANGSTROM              0.00000000    -0.00000000     0.00000000    -0.00000000    -0.00000000
+ GZ1 / ANGSTROM             -0.06444144    -0.06172817    -0.06172132     0.00046809    -0.00000000
+ GX2 / ANGSTROM              0.37918573     0.38177201     0.38217648    -0.00022925    -0.00000000
+ GY2 / ANGSTROM              0.37918573     0.38177201     0.38217648    -0.00022925    -0.00000000
+ GZ2 / ANGSTROM              1.01198453     1.01317443     1.01318738    -0.00017846     0.00000000
+ GX3 / ANGSTROM             -0.37918573    -0.38177201    -0.38217648     0.00022925     0.14782789
+ GY3 / ANGSTROM             -0.37918573    -0.38177201    -0.38217648     0.00022925     0.36215724
+ GZ3 / ANGSTROM              1.01198453     1.01317443     1.01318738    -0.00017846     0.37286928
+ GX4 / ANGSTROM              0.69468998     0.69305267     0.69305087    -0.00001263     0.82070684
+ GY4 / ANGSTROM             -0.69468998    -0.69305267    -0.69305087     0.00001263     1.23701038
+ GZ4 / ANGSTROM             -0.54834797    -0.55089450    -0.55091088    -0.00005558     1.56909738
+ GX5 / ANGSTROM             -0.69468998    -0.69305267    -0.69305087     0.00001263     4.68731479
+ GY5 / ANGSTROM              0.69468998     0.69305267     0.69305087    -0.00001263     4.69384773
+ GZ5 / ANGSTROM             -0.54834797    -0.55089450    -0.55091088    -0.00005558     6.76492058
+ Convergence:                0.00000000  (line search)     0.00152974     0.00037412  (total)
+
+ Geometry written to block  6 of record 700
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  6 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00   -0.000000000    0.000000000   -0.116636398
+   2  H       1.00    0.722208876    0.722208876    1.914646667
+   3  H       1.00   -0.722208876   -0.722208876    1.914646667
+   4  H       1.00    1.309676331   -1.309676331   -1.041070684
+   5  H       1.00   -1.309676331    1.309676331   -1.041070684
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.273605553  1-3  2.273605553  1-4  2.070044187  1-5  2.070044187
+     ( 1.203140241)     ( 1.203140241)     ( 1.095420205)     ( 1.095420205)
+
+ Bond angles
+
+  2-1-3   53.38778148   2-1-4  113.51446493   2-1-5  113.51446493   3-1-4  113.51446493
+
+  3-1-5  113.51446493   4-1-5  126.95143192
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   12.93498681
+
+
+ Eigenvalues of metric
+
+         1 0.667E-02 0.801E-02 0.846E-02 0.986E-02 0.119E-01 0.201E-01 0.293E-01 0.330E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.913 MB (compressed) written to integral file ( 53.5%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1494384. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.03 SEC
+ SORT2 READ     1494384. AND WROTE     1567335. INTEGRALS IN     34 RECORDS. CPU TIME:     0.04 SEC, REAL TIME:     0.06 SEC
+
+ FILE SIZES:   FILE 1:    16.6 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.6 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        1
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL (state 1.1)
+
+ Wavefunction dump at record             2140.2
+
+ Convergence thresholds  0.10E-04 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:       4378
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   19   23    0     -39.84333484     -39.84333493   -0.00000009    0.00053078 0.00000013 0.00000042  0.54D-03      0.17
+   2   20    6    0     -39.84333493     -39.84333493   -0.00000000    0.00000016 0.00000001 0.00000010  0.20D-05      0.27
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.16D-07
+
+ Gradient information for state 1.1 saved on record      5000.1
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.2 (density set 1)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.843334926850
+ Nuclear energy                        12.93498681
+ Kinetic energy                        39.82978843
+ One electron energy                  -75.00163899
+ Two electron energy                   22.22331725
+ Virial ratio                           2.00034011
+
+ !MCSCF STATE 1.1 Dipole moment         0.00000000     0.00000000     0.70482418
+ Dipole moment /Debye                   0.00000000     0.00000000     1.79136704
+
+
+ Natural orbital dump at molpro section  2140.2    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.54       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
+                                         5000   
+                                        MCGRAD    
+
+              2       5        0.61       700     1000      520     2100     2140   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF   
+
+ PROGRAMS   *        TOTAL     MULTI     MULTI        HF       INT
+ CPU TIMES  *         8.32      0.51      0.64      0.16      0.18
+ REAL TIME  *         9.37 SEC
+ DISK USED  *        38.28 MB      
+ **********************************************************************************************************************************
+
+ PROGRESS OF GEOMETRY OPTIMIZATION.    TOTAL CPU:         7.3 SEC
+   1   -39.84286785   -39.84320294    -0.00033510  0.01514287  0.01735908  0.00192879  0.03926678  0.04464269  0.01996482
+   2   -39.84320294   -39.84330817    -0.00010522  0.00892091  0.00957847  0.00106427  0.01580820  0.02681628  0.01199261
+   3   -39.84330817   -39.84332453    -0.00001636  0.00180446  0.00237017  0.00026335  0.00890081  0.00975738  0.00436363
+   4   -39.84332453   -39.84333470    -0.00001018  0.00125199  0.00138347  0.00015372  0.01420676  0.01471586  0.00658113
+   5   -39.84333470   -39.84333493    -0.00000022  0.00029794  0.00037412  0.00004157  0.00125157  0.00152974  0.00068412
+
+ **********************************************************************************************************************************
+
+ Current geometry (xyz format, in Angstrom)
+
+    5
+ MULTI000/6-31++G(2D,2P)  ENERGY=-39.84333493
+ C         -0.0000000000        0.0000000000       -0.0617213237
+ H          0.3821764772        0.3821764772        1.0131873792
+ H         -0.3821764772       -0.3821764772        1.0131873792
+ H          0.6930508658       -0.6930508658       -0.5509108790
+ H         -0.6930508658        0.6930508658       -0.5509108790
+
+ **********************************************************************************************************************************
