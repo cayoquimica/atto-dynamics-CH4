@@ -25,19 +25,19 @@
  angstrom
  geometry={
   C          0.0000000009        0.0000000052       -0.0000000001
-  H         -0.7569586713        0.7569586639        0.3776374633
-  H          0.7569586615       -0.7569586690        0.3776374600
-  H          0.7569586701        0.7569586657       -0.3776374645
-  H         -0.7569586628       -0.7569586672       -0.3776374587
+  H          0.7569586713        0.7569586639        0.3776374633
+  H         -0.7569586615       -0.7569586690        0.3776374600
+  H          0.7569586701       -0.7569586657       -0.3776374645
+  H         -0.7569586628        0.7569586672       -0.3776374587
           }
  noorient
  {hf,orbital=2100.2;wf,9,1,1}
  {multi;start,2100.2;occ,9;pspace,0.4;wf,9,1,1}
  {optg}
 
- Variables initialized (778), CPU time= 0.00 sec
+ Variables initialized (778), CPU time= 0.01 sec
  Commands  initialized (547), CPU time= 0.01 sec, 516 directives.
- Default parameters read. Elapsed time= 0.04 sec
+ Default parameters read. Elapsed time= 0.16 sec
 
  Checking input...
  Passed
@@ -52,7 +52,7 @@
 
  **********************************************************************************************************************************
  LABEL *                                                                                 
- Linux-4.15.0-65-generic/cayo-pc(x86_64) 64 bit serial version                           DATE: 29-Oct-19          TIME: 16:36:23  
+ Linux-4.15.0-65-generic/cayo-pc(x86_64) 64 bit serial version                           DATE: 01-Nov-19          TIME: 11:11:09  
  **********************************************************************************************************************************
 
  SHA1:             960ce83de8be0427555cf121dea4debc26c720b5
@@ -112,21 +112,21 @@ Geometry recognized as XYZ
  NR  ATOM    CHARGE       X              Y              Z
 
    1  C       6.00    0.000000002    0.000000010   -0.000000000
-   2  H       1.00   -1.430444582    1.430444568    0.713631383
-   3  H       1.00    1.430444563   -1.430444577    0.713631376
-   4  H       1.00    1.430444579    1.430444571   -0.713631385
-   5  H       1.00   -1.430444565   -1.430444574   -0.713631374
+   2  H       1.00    1.430444582    1.430444568    0.713631383
+   3  H       1.00   -1.430444563   -1.430444577    0.713631376
+   4  H       1.00    1.430444579   -1.430444571   -0.713631385
+   5  H       1.00   -1.430444565    1.430444574   -0.713631374
 
  Bond lengths in Bohr (Angstrom)
 
- 1-2  2.145137079  1-3  2.145137082  1-4  2.145137078  1-5  2.145137083
-     ( 1.135157653)     ( 1.135157654)     ( 1.135157652)     ( 1.135157654)
+ 1-2  2.145137077  1-3  2.145137084  1-4  2.145137092  1-5  2.145137070
+     ( 1.135157651)     ( 1.135157655)     ( 1.135157659)     ( 1.135157647)
 
  Bond angles
 
-  2-1-3  141.13768336   2-1-4   96.35405597   2-1-5   96.35405494   3-1-4   96.35405532
+  2-1-3  141.13768336   2-1-4   96.35405485   2-1-5   96.35405561   3-1-4   96.35405465
 
-  3-1-5   96.35405429   4-1-5  141.13768338
+  3-1-5   96.35405542   4-1-5  141.13768338
 
  NUCLEAR CHARGE:                   10
  NUMBER OF PRIMITIVE AOS:          82
@@ -147,7 +147,7 @@ Geometry recognized as XYZ
  Contracted 2-electron integrals neglected if value below      1.0D-11
  AO integral compression algorithm  1   Integral accuracy      1.0D-11
 
-     8.651 MB (compressed) written to integral file ( 53.4%)
+     8.651 MB (compressed) written to integral file ( 53.1%)
 
 
  NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
@@ -155,8 +155,8 @@ Geometry recognized as XYZ
 
  Memory used in sort:       2.12 MW
 
- SORT1 READ     2028348. AND WROTE     1484915. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.04 SEC
- SORT2 READ     1484915. AND WROTE     1567335. INTEGRALS IN     33 RECORDS. CPU TIME:     0.04 SEC, REAL TIME:     0.06 SEC
+ SORT1 READ     2028348. AND WROTE     1479473. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.04 SEC
+ SORT2 READ     1479473. AND WROTE     1567335. INTEGRALS IN     33 RECORDS. CPU TIME:     0.06 SEC, REAL TIME:     0.06 SEC
 
  FILE SIZES:   FILE 1:    16.4 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.4 MBYTE
 
@@ -165,14 +165,14 @@ Geometry recognized as XYZ
 
  **********************************************************************************************************************************
  DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
-              1      19       14.46       500      610      700      900      950      970     1000      129      960     1100   
+              1      19       14.45       500      610      700      900      950      970     1000      129      960     1100   
                                           VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
                                          1400     1410     1200     1210     1080     1600     1650     1300     1700   
                                            T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER   
 
  PROGRAMS   *        TOTAL       INT
- CPU TIMES  *         0.27      0.19
- REAL TIME  *         0.37 SEC
+ CPU TIMES  *         0.36      0.24
+ REAL TIME  *         1.00 SEC
  DISK USED  *        37.71 MB      
  **********************************************************************************************************************************
 
@@ -193,27 +193,27 @@ Geometry recognized as XYZ
  Molecular orbital dump at record        2100.2
 
  ITERATION    DDIFF          GRAD             ENERGY        2-EL.EN.            DIPOLE MOMENTS         DIIS   ORB.
-    1      0.000D+00      0.000D+00       -39.72433015     43.444941   -0.00000   -0.00000    0.00000    0    start
-    2      0.000D+00      0.855D-02       -39.75570148     44.935063   -0.00000   -0.00000    0.00000    1    diag,B
-    3      0.449D-02      0.236D-02       -39.75810533     44.846048   -0.00000   -0.00000    0.00000    2    diag,B
-    4      0.195D-02      0.727D-03       -39.75846969     44.889724   -0.00000   -0.00000    0.00000    3    diag,B
-    5      0.891D-03      0.154D-03       -39.75849385     44.893705   -0.00000   -0.00000    0.00000    4    diag,B
-    6      0.204D-03      0.352D-04       -39.75849581     44.892407   -0.00000   -0.00000    0.00000    5    diag,B
-    7      0.609D-04      0.913D-05       -39.75849594     44.892593   -0.00000   -0.00000    0.00000    6    fixocc
-    8      0.140D-04      0.132D-05       -39.75849594     44.892528   -0.00000   -0.00000    0.00000    7    diag,B
-    9      0.279D-05      0.187D-06       -39.75849594     44.892551   -0.00000   -0.00000    0.00000    8    diag,B
-   10      0.348D-06      0.349D-07       -39.75849594     44.892548   -0.00000   -0.00000    0.00000    0    orth
+    1      0.000D+00      0.000D+00       -39.72433015     43.444941    0.00000   -0.00000    0.00000    0    start
+    2      0.000D+00      0.855D-02       -39.75570148     44.935063    0.00000   -0.00000    0.00000    1    diag,B
+    3      0.449D-02      0.236D-02       -39.75810533     44.846048    0.00000   -0.00000    0.00000    2    diag,B
+    4      0.195D-02      0.727D-03       -39.75846969     44.889724    0.00000   -0.00000    0.00000    3    diag,B
+    5      0.891D-03      0.154D-03       -39.75849385     44.893705    0.00000   -0.00000    0.00000    4    diag,B
+    6      0.204D-03      0.352D-04       -39.75849581     44.892407    0.00000   -0.00000    0.00000    5    diag,B
+    7      0.609D-04      0.913D-05       -39.75849594     44.892593    0.00000   -0.00000    0.00000    6    fixocc
+    8      0.140D-04      0.132D-05       -39.75849594     44.892528    0.00000   -0.00000    0.00000    7    diag,B
+    9      0.279D-05      0.187D-06       -39.75849594     44.892551    0.00000   -0.00000    0.00000    8    diag,B
+   10      0.348D-06      0.349D-07       -39.75849594     44.892548    0.00000   -0.00000    0.00000    0    orth
 
  Final alpha occupancy:   5
  Final beta  occupancy:   4
 
- !RHF STATE 1.1 Energy                -39.758495938283
+ !RHF STATE 1.1 Energy                -39.758495938279
  Nuclear energy                        12.93353720
  One-electron energy                  -75.13830737
  Two-electron energy                   22.44627424
  Virial quotient                       -1.00262664
- !RHF STATE 1.1 Dipole moment          -0.00000000    -0.00000001     0.00000000
- Dipole moment /Debye                  -0.00000001    -0.00000003     0.00000000
+ !RHF STATE 1.1 Dipole moment           0.00000001    -0.00000001     0.00000000
+ Dipole moment /Debye                   0.00000003    -0.00000003     0.00000000
 
  Orbital energies:
 
@@ -227,7 +227,7 @@ Geometry recognized as XYZ
 
  **********************************************************************************************************************************
  DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
-              1      19       14.46       500      610      700      900      950      970     1000      129      960     1100   
+              1      19       14.45       500      610      700      900      950      970     1000      129      960     1100   
                                           VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
                                          1400     1410     1200     1210     1080     1600     1650     1300     1700   
                                            T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER   
@@ -236,8 +236,8 @@ Geometry recognized as XYZ
                                          GEOM     BASIS   MCVARS     RHF  
 
  PROGRAMS   *        TOTAL        HF       INT
- CPU TIMES  *         0.44      0.17      0.19
- REAL TIME  *         0.54 SEC
+ CPU TIMES  *         0.52      0.16      0.24
+ REAL TIME  *         1.27 SEC
  DISK USED  *        37.71 MB      
  **********************************************************************************************************************************
 
@@ -266,9 +266,9 @@ Geometry recognized as XYZ
 
  ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
 
-   1   40   23    0     -39.76396353     -39.83660193   -0.07263840    0.01072959 0.00010995 0.00039915  0.17D+01      0.21
-   2   18   26    0     -39.83352025     -39.83432783   -0.00080758    0.01941842 0.00000003 0.00000024  0.14D+00      0.43
-   3   29   10    0     -39.83432801     -39.83432801   -0.00000000    0.00001468 0.00000007 0.00000053  0.11D-03      0.56
+   1   40   23    0     -39.76396353     -39.83660954   -0.07264601    0.01072959 0.00011062 0.00039925  0.17D+01      0.21
+   2   18   26    0     -39.83351983     -39.83432783   -0.00080800    0.01943091 0.00000003 0.00000024  0.14D+00      0.45
+   3   29   10    0     -39.83432801     -39.83432801   -0.00000000    0.00001467 0.00000007 0.00000054  0.11D-03      0.57
 
  ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.96D-07
 
@@ -280,15 +280,15 @@ Geometry recognized as XYZ
  Results for state 1.1
  =====================
 
- !MCSCF STATE 1.1 Energy              -39.834328008409
+ !MCSCF STATE 1.1 Energy              -39.834328008405
  Nuclear energy                        12.93353720
  Kinetic energy                        39.82239839
  One electron energy                  -75.09564178
  Two electron energy                   22.32777657
  Virial ratio                           2.00029957
 
- !MCSCF STATE 1.1 Dipole moment        -0.00000000    -0.00000001     0.00000000
- Dipole moment /Debye                  -0.00000001    -0.00000003     0.00000000
+ !MCSCF STATE 1.1 Dipole moment         0.00000001    -0.00000001    -0.00000000
+ Dipole moment /Debye                   0.00000003    -0.00000003    -0.00000000
 
 
  Natural orbital dump at molpro section  2140.2    (Orbital set 2)
@@ -297,7 +297,7 @@ Geometry recognized as XYZ
 
  **********************************************************************************************************************************
  DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
-              1      21       16.42       500      610      700      900      950      970     1000      129      960     1100   
+              1      21       16.41       500      610      700      900      950      970     1000      129      960     1100   
                                           VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
                                          1400     1410     1200     1210     1080     1600     1650     1300     1700     1380   
                                            T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     JKOP   
@@ -308,8 +308,8 @@ Geometry recognized as XYZ
                                          GEOM     BASIS   MCVARS     RHF     MCSCF   
 
  PROGRAMS   *        TOTAL     MULTI        HF       INT
- CPU TIMES  *         1.07      0.63      0.17      0.19
- REAL TIME  *         1.25 SEC
+ CPU TIMES  *         1.16      0.64      0.16      0.24
+ REAL TIME  *         2.04 SEC
  DISK USED  *        37.71 MB      
  **********************************************************************************************************************************
 
@@ -319,7 +319,7 @@ Geometry recognized as XYZ
 
  BFGS update of hessian
 
- *** Long output written to logfile /home/cayo/te/optg_cation_d2d.log ***
+ *** Long output written to logfile /home/cayo/atto-dynamics-CH4/CH4_geometry_files/optg_cation_d2d.log ***
 
 
  Geometry optimization using default procedure for command MULTI
@@ -331,7 +331,7 @@ Geometry recognized as XYZ
  Quadratic Steepest Descent - Minimum Search
 
  ITER.   ENERGY(OLD)    ENERGY(NEW)      DE          GRADMAX     GRADNORM    GRADRMS     STEPMAX     STEPLEN     STEPRMS   CPU-time
-   1   -39.83432801   -39.83432801    -0.00000001  0.00003460  0.00003526  0.00000392  0.00017762  0.00017835  0.00007976      1.33
+   1   -39.83432801   -39.83432801    -0.00000001  0.00003460  0.00003526  0.00000392  0.00017762  0.00017835  0.00007976      1.29
 
  END OF GEOMETRY OPTIMIZATION.
 
@@ -339,11 +339,11 @@ Geometry recognized as XYZ
 
     5
  MULTI000/6-31++G(2D,2P)  ENERGY=-39.83432801
- C          0.0000000023        0.0000000075       -0.0000000001
- H         -0.7569725960        0.7569725848        0.3775945771
- H          0.7569725819       -0.7569725932        0.3775945732
- H          0.7569725941        0.7569725888       -0.3775945794
- H         -0.7569725839       -0.7569725892       -0.3775945707
+ C         -0.0000000004        0.0000000072       -0.0000000001
+ H          0.7569725982        0.7569725837        0.3775945777
+ H         -0.7569725797       -0.7569725942        0.3775945726
+ H          0.7569725889       -0.7569725865       -0.3775945748
+ H         -0.7569725891        0.7569725915       -0.3775945753
 
  **********************************************************************************************************************************
 
@@ -363,8 +363,8 @@ Geometry recognized as XYZ
                                          GEOM     BASIS   MCVARS     RHF     MCSCF   
 
  PROGRAMS   *        TOTAL      OPTG     MULTI        HF       INT
- CPU TIMES  *         2.40      1.33      0.63      0.17      0.19
- REAL TIME  *         3.15 SEC
+ CPU TIMES  *         2.45      1.29      0.64      0.16      0.24
+ REAL TIME  *         3.97 SEC
  DISK USED  *        38.02 MB      
  **********************************************************************************************************************************
 
