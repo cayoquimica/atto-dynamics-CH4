@@ -3,5 +3,7 @@
 *.mod
 *.swp
 *.dat
+*.h5
+eigen-vec-neutral
 csr_vectors
 wfINIT
