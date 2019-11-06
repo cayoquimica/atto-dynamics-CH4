@@ -1,3 +1,7 @@
+*.exe
+*.o
+*.mod
 *.swp
 *.dat
 csr_vectors
+wfINIT
