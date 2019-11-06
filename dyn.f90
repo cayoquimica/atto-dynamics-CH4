@@ -26,7 +26,7 @@ real(kind=dp)                :: soma,soma1,soma2,soma3,p1q1,p2q1,p3q1,p1q2,p2q2,
 ! Later would be better and faster if I already build the matrices with index 0.     <<<---------------
 t0=0.d0
 tf=10000.0d0           !1000 = 24.18884326505 femtoseconds
-npoints=100000         
+npoints=1000000         
 tstep=(tf-t0)/npoints  !define time step size in atomic units
 
 !$ truni = omp_get_wtime()
@@ -35,7 +35,6 @@ write(100,*)'INITIATING SIMULATION'
 
 n=Nst*Nq1*Nq2 ! m=Nq1*Nq2*st %size of the Hamiltonian
 
-!$ ompt0 = omp_get_wtime()
 call load_data
 open(unit=20,file='csr_vectors',status='unknown')
 read(20,'(i12)')k_moq1
@@ -80,9 +79,6 @@ do i=0,n
   read(20,'(i12)')am_rowc(i)
 end do
 
-!$ ompt1 = omp_get_wtime()
-write(100,*) 'The time to load the CSR vectors=',ompt1 - ompt0, "seconds"
-
 allocate ( wf0(0:Nst*Nq1*Nq2-1) )
 wf0=dcmplx(0.d0,0.d0)
 open(newunit=init_wf,file='wfINIT',status='old')
@@ -122,16 +118,6 @@ end do
 !  end do                                                                                                     !#
 !end do                                                                                                       !# 
 !!############################################################################################################!#
-write(100,'(a50,(es15.7e3))')'Energy of the ionizing pulse =',e_ip
-write(100,'(a50,(es15.7e3))')'Number of points in coordinate 1 =',Nq1
-write(100,'(a50,(es15.7e3))')'Number of points in coordinate 2 =',Nq2
-write(100,'(a50,(es15.7e3))')'Number of states =',Nst
-write(100,'(a50,(3es9.1e3))')'Orientation of the probing electric field =',orientation
-write(100,'(a50,(es15.7e3))')'Time where the probing electric field is centered =',t00
-write(100,'(a50,(es15.7e3))')'Phase of the probing electric field =',phase
-write(100,'(a50,(es15.7e3))')'Energy of the probing electric field =',freq
-write(100,'(a50,(es15.7e3))')'Duration of the probing electric field (sigma) =',sig
-write(100,'(a50,(es15.7e3))')'Intensity of the probing electric field =',E00
 write(100,*)''
 write(100,'(a)')'Inital state of the cation after a sudden ionization defined'
 write(100,*)''
@@ -182,20 +168,40 @@ do i=0,s-1                                               !
   p2q2=p2q2 + dconjg(wf0(i+s)) * mom(i+s)                !
   p3q2=p3q2 + dconjg(wf0(i+2*s)) * mom(i+2*s)            !
 end do                                                   !
-write(100,'(a35,e23.15e3,a8)')'inital linear momentum in q1 =',p1q1+p2q1+p3q1,' au.'
-write(100,'(a35,e23.15e3,a8)')'inital linear momentum in q2 =',p1q2+p2q2+p3q2,' au.'
 !--------------------------------------------------------!
 E_init=soma1+soma2+soma3 !Storing the initial energy 
-write(100,*)'##############################################################################'
-write(100,*)'Time the program took to do the operation H|Psi> is:',(ompt1-ompt0), "seconds"
-write(100,*)'Be ready to wait probably ', npoints*(tt1-tt0+(stop_time-start_time)*2.d0+(ompt1-ompt0)*5.d0)/(3600.d0) , "hours"
-write(100,*)'##############################################################################'
-write(100,'(a30,3(f23.15))')'initial angular momentum = ',L1,L2,L3,L1+L2+L3
-write(100,'(a30,(f23.15),a8)')'inital energy =',soma1+soma2+soma3,' hartree'
-write(100,'(a30,(f23.15))')'initial 1 / dq1 =',1.d0/sq1
-write(100,'(a30,(f23.15))')'initial 1 / dq2 =',1.d0/sq2
+
+write(100,'(a)')'PARAMETERS OF THE DYNAMICS'
+write(100,'(a50,i)')'Number of states =',Nst
+write(100,'(a50,i)')'Number of points in coordinate 1 =',Nq1
+write(100,'(a50,i)')'Number of points in coordinate 2 =',Nq2
+write(100,'(a50,f11.4)')'Step size in coordinate 1 =',sq1
+write(100,'(a50,f11.4)')'Step size in coordinate 2 =',sq2
+write(100,'(a50,f11.4)')'Initial 1 / dq1 =',1.d0/sq1
+write(100,'(a50,f11.4)')'Initial 1 / dq2 =',1.d0/sq2
+write(100,'(a50,f11.1,a17,f11.1,a15)')'The time evolution goes until =',tf,' atomic units or ',tf*24.18884326505d0/1000.d0,' femtoseconds'
+write(100,'(a50,i)')'Number of time evaluations =',npoints
+write(100,'(a50,f11.5,a4)')'time step =',tstep,' au.'
+write(100,'(a50,3f4.1)')'Orientation of the probing electric field =',orientation
+write(100,'(a50,(es15.7e3))')'Energy of the ionizing pulse =',e_ip
+write(100,'(a50,(es15.7e3))')'Time where the electric field is centered =',t00
+write(100,'(a50,(es15.7e3))')'Phase of the probing electric field =',phase
+write(100,'(a50,(es15.7e3))')'Energy of the probing electric field =',freq
+write(100,'(a50,(es15.7e3))')'Duration of the probing electric field (sigma) =',sig
+write(100,'(a50,(es15.7e3))')'Intensity of the probing electric field =',E00
+write(100,'(a50,e23.15e3,a8)')'Inital linear momentum in q1 =',p1q1+p2q1+p3q1,' au.'
+write(100,'(a50,e23.15e3,a8)')'Inital linear momentum in q2 =',p1q2+p2q2+p3q2,' au.'
+write(100,'(a50,(f23.15),a8)')'Inital energy =',soma1+soma2+soma3,' hartree'
+write(100,'(a50,(f23.15),a8)')'Inital energy for state 1 =',soma1,' hartree'
+write(100,'(a50,(f23.15),a8)')'Inital energy for state 2 =',soma2,' hartree'
+write(100,'(a50,(f23.15),a8)')'Inital energy for state 3 =',soma3,' hartree'
+write(100,'(a50,4(f11.8))')'Initial angular momentum =',L1,L2,L3,L1+L2+L3
 !write(100,'(a35,(f23.15))')'initial k * dq =',dsqrt(2*mtotal*e0)*sq1*sq2 
 !write(100,'(a35,(f23.15),a4)')'vibrational frequency =',w,' au.'
+write(100,*)'##############################################################################'
+write(100,'(a53,f6.4,a8)')'Time the program took to do the operation H|Psi> is: ',(ompt1-ompt0)," seconds"
+write(100,'(a25,f8.2,a6)')'Be ready to wait probably', npoints*(tt1-tt0+(stop_time-start_time)*2.d0+(ompt1-ompt0)*5.d0)/(3600.d0) ," hours"
+write(100,*)'##############################################################################'
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! nanoseconds = 1d-9 seconds
 ! picoseconds = 1d-12 seconds
@@ -235,9 +241,6 @@ character(len=23) :: fname
 open(unit=15,file='alldata.data',status='unknown')
 
 t=t0
-write(100,'(a30,f23.15,a4)')'time step =',h,' au.'
-write(100,'(a30,f23.15)')'step size in coordinate 1 =',sq1
-write(100,'(a30,f23.15)')'step size in coordinate 2 =',sq2
 
 !--------------------------------------------------------!
 !Checking momentum and saving norm                       !
@@ -290,59 +293,59 @@ write(15,'(a3,3(e26.14e3))')'# ',e1,e2,e3
 write(15,'(a)') '# time, Pulse, norm1, norm2, norm3, E1, E2, E3, angular momentum st1, angular momentum st2, angular momentum st3,&
 linear momentum in q1 st1, linear momentum in q2 st1, linear momentum in q1 st2, linear momentum in q2 st2,&
 linear momentum in q1 st3, linear momentum in q2 st3'
-Et=(E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
-write(15,'(17(es26.16e3))')t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
-!=================================================================!
-!saving inital wave function for plotting reasons                 ! 
-fname='amp-time-st1-000001.dat'                                   !
-open(unit=20,file=fname,status='unknown')                         !
-fname='amp-real-st1-000001.dat'                                   !
-open(unit=30,file=fname,status='unknown')                         !
-fname='amp-imag-st1-000001.dat'                                   !
-open(unit=40,file=fname,status='unknown')                         !
-fname='amp-time-st2-000001.dat'                                   !
-open(unit=50,file=fname,status='unknown')                         !
-fname='amp-real-st2-000001.dat'                                   !
-open(unit=60,file=fname,status='unknown')                         !
-fname='amp-imag-st2-000001.dat'                                   !
-open(unit=70,file=fname,status='unknown')                         !
-fname='amp-time-st3-000001.dat'                                   !
-open(unit=80,file=fname,status='unknown')                         !
-fname='amp-real-st3-000001.dat'                                   !
-open(unit=90,file=fname,status='unknown')                         !
-fname='amp-imag-st3-000001.dat'                                   !
-open(unit=99,file=fname,status='unknown')                         !
-do i=0,s-1                                                        !
-  write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))              !
-  write(30,'(3(es26.16e3))') ( dreal(y(i)) )                      !
-  write(40,'(3(es26.16e3))') ( dimag(y(i)) )                      !
-  write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))      !
-  write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )                  !
-  write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )                  !
-  write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))    !
-  write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )                  !
-  write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )                  !
-end do                                                            !
-close(unit=20)                                                    !
-close(unit=30)                                                    !
-close(unit=40)                                                    !
-close(unit=50)                                                    !
-close(unit=60)                                                    !
-close(unit=70)                                                    !
-close(unit=80)                                                    !
-close(unit=90)                                                    !
-close(unit=99)                                                    !
-!=================================================================!
+!Et=(E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
+!write(15,'(17(es26.16e3))')t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
+!!=================================================================!
+!!saving inital wave function for plotting reasons                 ! 
+!fname='amp-time-st1-000001.dat'                                   !
+!open(unit=20,file=fname,status='unknown')                         !
+!fname='amp-real-st1-000001.dat'                                   !
+!open(unit=30,file=fname,status='unknown')                         !
+!fname='amp-imag-st1-000001.dat'                                   !
+!open(unit=40,file=fname,status='unknown')                         !
+!fname='amp-time-st2-000001.dat'                                   !
+!open(unit=50,file=fname,status='unknown')                         !
+!fname='amp-real-st2-000001.dat'                                   !
+!open(unit=60,file=fname,status='unknown')                         !
+!fname='amp-imag-st2-000001.dat'                                   !
+!open(unit=70,file=fname,status='unknown')                         !
+!fname='amp-time-st3-000001.dat'                                   !
+!open(unit=80,file=fname,status='unknown')                         !
+!fname='amp-real-st3-000001.dat'                                   !
+!open(unit=90,file=fname,status='unknown')                         !
+!fname='amp-imag-st3-000001.dat'                                   !
+!open(unit=99,file=fname,status='unknown')                         !
+!do i=0,s-1                                                        !
+!  write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))              !
+!  write(30,'(3(es26.16e3))') ( dreal(y(i)) )                      !
+!  write(40,'(3(es26.16e3))') ( dimag(y(i)) )                      !
+!  write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))      !
+!  write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )                  !
+!  write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )                  !
+!  write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))    !
+!  write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )                  !
+!  write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )                  !
+!end do                                                            !
+!close(unit=20)                                                    !
+!close(unit=30)                                                    !
+!close(unit=40)                                                    !
+!close(unit=50)                                                    !
+!close(unit=60)                                                    !
+!close(unit=70)                                                    !
+!close(unit=80)                                                    !
+!close(unit=90)                                                    !
+!close(unit=99)                                                    !
+!!=================================================================!
 write(100,*) '************************************************************'
 write(100,*) 'Integrating amplitudes over time'
 write(100,*) '************************************************************'
 write(100,'(a)') '   time  ,   Pulse   ,     E1    ,    E2     ,    E3     ,   ET-E0   ,   norm1   ,   norm2   ,   norm3   &
 , NormT-1   ,   Ltot    '
-write(100,'(i9,11(e12.3e3))') t-h,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
-ii=0;gg=1
-do ll=1,1000 ! for saving 1000 time samples
+!write(100,'(f9.1,11(e12.3e3))') t,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
+ii=0;gg=0!1
+do ll=1,10000 ! for saving 1000 time samples
   gg=gg+1
-  do k=1,(npoints/1000)
+  do k=1,(npoints/10000)
     ii=ii+1
     call HA_calc(t,y,n,dydt,h) ! evaluating y'(t,y)
     call rk4(y,dydt,n,t,h,y,HA_calc) !evaluating y(t+h)
@@ -474,9 +477,9 @@ Et = (E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00
 !  write(12,'((es26.16e3))') Et
 !  write(13,'(3(es26.16e3))') e1,e2,e3
 !  write(14,'(3(es26.16e3))') L1,L2,L3
-  write(15,'(17(es26.16e3))') t,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
+  write(15,'(17(es26.16e3))') t-h,Et,sum1,sum2,sum3,e1,e2,e3,L1,L2,L3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
 !  tt(ii)=t !saving time value for each step in time
-  write(100,'(i9,11(e12.3e3))') t-h,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
+  write(100,'(f9.2,11(e12.3e3))') t,Et,e1,e2,e3,e1+e2+e3-aux2,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
   !WRITE(6,'(5(A))',ADVANCE="NO") "\b","\b","\b","\b","b"
   !write(6,'(f5.1,"%")',advance='no') ii/10.d0
   !flush(6)

@@ -30,10 +30,10 @@ integer, allocatable                       :: moq1_rowc(:),moq1_row_col(:,:),moq
 integer, allocatable                       :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
 real(kind=dp)                              :: mass1,mass2,mass3 !Reduced masses to be used in the second derivative
 real(kind=dp)                              :: Et !Final electrical field of the pulse
-real(kind=dp), parameter                   :: t00 = 0.d0 !time where the pulse is centered
+real(kind=dp), parameter                   :: t00 = 800.d0 !time where the pulse is centered
 real(kind=dp), parameter                   :: phase = 0.d0 !phase factor for the pulse related to the gaussian envelope
 real(kind=dp), parameter                   :: freq =0.056937d0 !0.512285550500502 is the ionizating pulse !0.056937d0 !frequency of the pulse, in a.u. - 800 nm of wavelength
-real(kind=dp), parameter                   :: sig = 125.d0  ! 50 approx 1200 attoseconds - width of the gaussian envelop
+real(kind=dp), parameter                   :: sig = 100.d0  ! 50 approx 1200 attoseconds - width of the gaussian envelop
 real(kind=dp), parameter                   :: E00 = 0.05d0 !0.05d0 !Electric field intensity
 real(kind=dp), dimension(3), parameter     :: orientation=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the pulse
 real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const3,E_init
