@@ -18,7 +18,7 @@ real(kind=dp), parameter                   :: mtotal = car + 4.d0 * hi ! total m
 real(kind=dp)                              :: mass(3*NA) !3N Vector with the masses of the atoms
 real(kind=dp)                              :: q1(3*NA),q2(3*NA),q1i(3*NA),q2i(3*NA),ai,bi,aii,bii !Conversion vector from internal coordinates q1 and q2 to cartesian coordinates
 real(kind=dp)                              :: co1(0:Nst*Nq1*Nq2-1),co2(0:Nst*Nq1*Nq2-1)
-real(kind=dp), dimension(:,:), allocatable :: pot1,pot2,pot3 !Matrices with each state potential energy
+real(kind=dp), dimension(:,:), allocatable :: pot1,pot2,pot3,e1neut !Matrices with each state potential energy
 real(kind=dp), dimension(:,:), allocatable :: pdm1x,pdm2x,pdm3x,pdm1y,pdm2y,pdm3y,pdm1z,pdm2z,pdm3z ! Permanent dipole moments
 real(kind=dp), dimension(:,:), allocatable :: tdm21x,tdm31x,tdm32x,tdm21y,tdm31y,tdm32y,tdm21z,tdm31z,tdm32z ! Transition dipole moments
 real(kind=dp), dimension(:,:), allocatable :: Ha! Hamiltonian matrix
@@ -37,13 +37,12 @@ real(kind=dp), parameter                   :: sig = 100.d0  ! 50 approx 1200 att
 real(kind=dp), parameter                   :: E00 = 0.05d0 !0.05d0 !Electric field intensity
 real(kind=dp), dimension(3), parameter     :: orientation=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the pulse
 real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const3,E_init
-real(kind=dp), parameter                   :: e_ref = -39.837813947407d0 !Reference energy of the C2v minimum of the cation
-real(kind=dp), parameter                   :: e_neut = -40.284741884377d0-e_ref !Energy of the ground state of the neutral in the TD geometry, from where the ionization happens 
 real(kind=dp), parameter                   :: e_ip =  1.d0 !Energy of the ionizing pulse in atomic units 1 = approx 27 ev
 
 contains
 
 subroutine load_data
+allocate (e1neut(Nq1,Nq2))
 allocate (pot1(Nq1,Nq2))
 allocate (pot2(Nq1,Nq2))
 allocate (pot3(Nq1,Nq2))
@@ -71,10 +70,12 @@ end do
 
 !-------------------------------------------------------------------!
 ! Loading electronic structure data: Energy and dipole moments      !
+open(unit=99,file='v1neutral.txt',status='old')                     !
 open(unit=1,file='v1f.txt',status='old')                            !
 open(unit=2,file='v2f.txt',status='old')                            !
 open(unit=3,file='v3f.txt',status='old')                            !
 do i=1,Nq1                                                          !
+  read(99,*) e1neut(i,:)                                            !
   read(1,*) pot1(i,:)                                               !
   read(2,*) pot2(i,:)                                               !
   read(3,*) pot3(i,:)                                               !

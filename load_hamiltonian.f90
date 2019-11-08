@@ -962,9 +962,9 @@ do ii=1,nang
   read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
 end do
 
-ip0 = pot1(i1+27,i2+20) - e_neut !ionization potential for ground state of the cation
-ip1 = pot2(i1+27,i2+20) - e_neut !ionization potential for first excited state of the cation
-ip2 = pot3(i1+27,i2+20) - e_neut !ionization potential for second excited state of the cation
+ip0 = pot1(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for ground state of the cation
+ip1 = pot2(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for first excited state of the cation
+ip2 = pot3(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for second excited state of the cation
 e0 = e_ip - ip0 !Energy of the ionized electron if the molecule goes for the cation ground state
 e1 = e_ip - ip1 !Energy of the ionized electron if the molecule goes for the cation first excited state
 e2 = e_ip - ip2 !Energy of the ionized electron if the molecule goes for the cation second excited state
