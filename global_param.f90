@@ -1,7 +1,7 @@
 module global_param
 implicit none
 integer, parameter                         :: dp = kind(1.d0) 
-integer                                    :: i,j,k,l,ll,k_Ha,k_dip,k_moq1,k_moq2,k_am
+integer                                    :: i,j,k,l,ll,k_Ha,k_dip,k_moq1,k_moq2,k_am,nfiles
 integer, parameter                         :: NA=5 !Number of atoms
 integer, parameter                         :: Nst=3 !number of electronic states
 integer, parameter                         :: Nq1=146 !126 !number of points of the grid along q1
