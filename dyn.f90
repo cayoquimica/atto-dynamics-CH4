@@ -25,9 +25,12 @@ real(kind=dp)                :: soma,soma1,soma2,soma3,p1q1,p2q1,p3q1,p1q2,p2q2,
 ! in a matrix with index starting in 0.
 ! Later would be better and faster if I already build the matrices with index 0.     <<<---------------
 t0=0.d0
-tf=10000.0d0           !1000 = 24.18884326505 femtoseconds
-npoints=1000000         
+tf=10.0d0           !1000 = 24.18884326505 femtoseconds
+npoints=1000         
 tstep=(tf-t0)/npoints  !define time step size in atomic units
+nfiles=100            !number of time snapshots of the wavefunction to save
+open(unit=33,file='simu_parameters',status='unknown') !File to save some parameters for the simulation
+write(33,*)tf,npoints,nfiles,Nq1,Nq2
 
 !$ truni = omp_get_wtime()
 open(unit=100,file='output',status='unknown') ! output for following the code running
@@ -343,9 +346,9 @@ write(100,'(a)') '   time  ,   Pulse   ,     E1    ,    E2     ,    E3     ,   E
 , NormT-1   ,   Ltot    '
 !write(100,'(f9.1,11(e12.3e3))') t,Et,e1,e2,e3,Te-E_init,sum1,sum2,sum3,sum1+sum2+sum3-1.d0,L1+L2+L3
 ii=0;gg=0!1
-do ll=1,10000 ! for saving 1000 time samples
+do ll=1,nfiles ! for saving 1000 time samples
   gg=gg+1
-  do k=1,(npoints/10000)
+  do k=1,(npoints/nfiles)
     ii=ii+1
     call HA_calc(t,y,n,dydt,h) ! evaluating y'(t,y)
     call rk4(y,dydt,n,t,h,y,HA_calc) !evaluating y(t+h)
@@ -416,60 +419,60 @@ momq2t(ii)=pq2_1+pq2_2+pq2_3
   end do
 ! ==================== STARTING SAVING PROCEDURE =====================
 
-!fname='time-amp-real-000000.h5'
-!write(fname(15:20),'(i0.6)') ii
-!call save_vector_h5(real(y),n,fname,23)
-!fname='time-amp-imag-000000.h5'
-!write(fname(15:20),'(i0.6)') ii
-!call save_vector_h5(aimag(y),n,fname,23)
+fname='time-amp-real-000000.h5'
+write(fname(15:20),'(i0.6)') ll
+call save_vector_h5(real(y),n,fname,23)
+fname='time-amp-imag-000000.h5'
+write(fname(15:20),'(i0.6)') ll
+call save_vector_h5(aimag(y),n,fname,23)
 
-  fname='amp-time-st1-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=20,file=fname,status='unknown')
-  fname='amp-real-st1-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=30,file=fname,status='unknown')
-  fname='amp-imag-st1-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=40,file=fname,status='unknown')
-  fname='amp-time-st2-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=50,file=fname,status='unknown')
-  fname='amp-real-st2-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=60,file=fname,status='unknown')
-  fname='amp-imag-st2-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=70,file=fname,status='unknown')
-  fname='amp-time-st3-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=80,file=fname,status='unknown')
-  fname='amp-real-st3-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=90,file=fname,status='unknown')
-  fname='amp-imag-st3-000000.dat'
-  write(fname(14:19),'(i0.6)') gg
-  open(unit=99,file=fname,status='unknown')
-  do i=0,s-1
-    write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))
-    write(30,'(3(es26.16e3))') ( dreal(y(i)) )
-    write(40,'(3(es26.16e3))') ( dimag(y(i)) )
-    write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))
-    write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )
-    write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )
-    write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))
-    write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )
-    write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )
-  end do
-  close(unit=20)
-  close(unit=30)
-  close(unit=40)
-  close(unit=50)
-  close(unit=60)
-  close(unit=70)
-  close(unit=80)
-  close(unit=90)
-  close(unit=99)
+!  fname='amp-time-st1-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=20,file=fname,status='unknown')
+!  fname='amp-real-st1-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=30,file=fname,status='unknown')
+!  fname='amp-imag-st1-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=40,file=fname,status='unknown')
+!  fname='amp-time-st2-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=50,file=fname,status='unknown')
+!  fname='amp-real-st2-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=60,file=fname,status='unknown')
+!  fname='amp-imag-st2-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=70,file=fname,status='unknown')
+!  fname='amp-time-st3-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=80,file=fname,status='unknown')
+!  fname='amp-real-st3-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=90,file=fname,status='unknown')
+!  fname='amp-imag-st3-000000.dat'
+!  write(fname(14:19),'(i0.6)') gg
+!  open(unit=99,file=fname,status='unknown')
+!  do i=0,s-1
+!    write(20,'(3(es26.16e3))')dreal(dconjg(y(i))*y(i))
+!    write(30,'(3(es26.16e3))') ( dreal(y(i)) )
+!    write(40,'(3(es26.16e3))') ( dimag(y(i)) )
+!    write(50,'(3(es26.16e3))')dreal(dconjg(y(1*s+i))*y(1*s+i))
+!    write(60,'(3(es26.16e3))') ( dreal(y(1*s+i)) )
+!    write(70,'(3(es26.16e3))') ( dimag(y(1*s+i)) )
+!    write(80,'(3(es26.16e3))')dreal(dconjg(y(2*s+i)) * y(2*s+i))
+!    write(90,'(3(es26.16e3))') ( dreal(y(2*s+i)) )
+!    write(99,'(3(es26.16e3))') ( dimag(y(2*s+i)) )
+!  end do
+!  close(unit=20)
+!  close(unit=30)
+!  close(unit=40)
+!  close(unit=50)
+!  close(unit=60)
+!  close(unit=70)
+!  close(unit=80)
+!  close(unit=90)
+!  close(unit=99)
 
 !  write(10,'(3(es26.16e3))') sum1,sum2,sum3
 !  write(11,'(6(es26.16e3))') pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3
