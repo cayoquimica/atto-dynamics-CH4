@@ -766,16 +766,16 @@ subroutine save_vector_h5(x,n,fname,le)
 use HDF5
 use global_param
 implicit none
-integer(kind=4)    :: n,le
-real(kind=dp)      :: x(n)
-character(len=l)   :: fname         ! File name
-character(len=l-3) :: dsetname      ! dataset name
-integer(HID_T)     :: file_id       ! File identifier
-integer(HID_T)     :: dspace_id     ! Dataspace identifier
-integer(HID_T)     :: dset_id       ! Dataset identifier
-integer(HSIZE_T)   :: dims(1)       ! Dimensions for Dataset and Dataspace
-integer,parameter  :: rank = 1      ! Dataset rank = number of dimensions
-integer            :: error         ! Error flag
+integer(kind=4)     :: n,le
+real(kind=dp)       :: x(n)
+character(len=le)   :: fname         ! File name
+character(len=le-3) :: dsetname      ! dataset name
+integer(HID_T)      :: file_id       ! File identifier
+integer(HID_T)      :: dspace_id     ! Dataspace identifier
+integer(HID_T)      :: dset_id       ! Dataset identifier
+integer(HSIZE_T)    :: dims(1)       ! Dimensions for Dataset and Dataspace
+integer,parameter   :: rank = 1      ! Dataset rank = number of dimensions
+integer             :: error         ! Error flag
 dims=n
 write(dsetname,'(<le-3>a)') fname(1:le-3)
 ! Initialize FORTRAN interface.
