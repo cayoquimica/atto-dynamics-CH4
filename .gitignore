@@ -8,3 +8,5 @@ eigen-vec-neutral
 csr_vectors
 wfINIT
 *.7z
+output
+slurm*
