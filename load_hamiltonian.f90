@@ -56,7 +56,7 @@ end do
 allocate ( wf0(0:Nst*Nq1*Nq2-1) )
 !wf0=dcmplx(0.d0,0.d0)
 !Projecting the photoionization coeficients into the neutral eigen state
-do i=1,s
+do i=0,s-1
   wf0(i)     = nwf0(i) * pice(i)
   wf0(i+s)   = nwf0(i) * pice(i+s)
   wf0(i+2*s) = nwf0(i) * pice(i+2*s)
