@@ -690,13 +690,13 @@ complex(kind=dp) :: y(0:n-1),dydt(0:n-1)
 
 Et = (E00/freq)*(-(t-t00)/sig**2.d0*dsin(freq*(t-t00)+phase)+freq*dcos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
 dydt=dcmplx(0.d0,0.d0)
-!!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et)
+!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et)
 do i=0,n-1
   do j=Ha_rowc(i),Ha_rowc(i+1)-1
     dydt(i) = dydt(i) + ( Ha_val(j) + (dip_val(j) * Et) ) * y(Ha_row_col(j,1)) / im
   end do
 end do
-!!$OMP end parallel do
+!$OMP end parallel do
 
 
 !dydt=dcmplx(0.d0,0.d0)
