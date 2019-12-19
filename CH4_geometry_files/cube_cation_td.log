@@ -1,0 +1,191 @@
+ Task   1   Incrementing variable GX1   by   0.010 AU (Skipping negative increment due to symmetry).
+ Task   2   Incrementing variable GY1   by   0.010 AU (Skipping negative increment due to symmetry).
+ Task   3   Incrementing variable GZ1   by   0.010 AU (Skipping negative increment due to symmetry).
+ Task   4   Incrementing variable GX2   by   0.010 AU
+ Task   5   Incrementing variable GX2   by  -0.010 AU
+ Task   6   Incrementing variable GY2   by   0.010 AU
+ Task   7   Incrementing variable GY2   by  -0.010 AU
+ Task   8   Incrementing variable GZ2   by   0.010 AU
+ Task   9   Incrementing variable GZ2   by  -0.010 AU
+ Starting task   1.  CPU=     0.00 sec, Elapsed=     0.00 sec
+ Incrementing variable GX1              by  0.005292 ANG   to    0.005292 ANG
+
+
+ Recomputing integrals since geometry changed
+
+1PROGRAM * SEWARD (Integral evaluation for generally contracted gaussian basis sets)     Author: Roland Lindh, 1990
+
+ Geometry written to block  1 of record 700
+
+
+ Point group  C1  
+
+
+
+ ATOMIC COORDINATES
+
+ NR  ATOM    CHARGE       X              Y              Z
+
+   1  C       6.00    0.010000000    0.000000000    0.000000000
+   2  H       1.00    1.205712920    1.205712920    1.205712920
+   3  H       1.00   -1.205712920   -1.205712920    1.205712920
+   4  H       1.00    1.205712920   -1.205712920   -1.205712920
+   5  H       1.00   -1.205712920    1.205712920   -1.205712920
+
+ Bond lengths in Bohr (Angstrom)
+
+ 1-2  2.082598540  1-3  2.094145457  1-4  2.082598540  1-5  2.094145457
+     ( 1.102063683)     ( 1.108174048)     ( 1.102063683)     ( 1.108174048)
+
+ Bond angles
+
+  2-1-3  109.46967238   2-1-4  109.92048560   2-1-5  109.46967238   3-1-4  109.46967238
+
+  3-1-5  109.02443289   4-1-5  109.46967238
+
+ NUCLEAR CHARGE:                   10
+ NUMBER OF PRIMITIVE AOS:          82
+ NUMBER OF SYMMETRY AOS:           80
+ NUMBER OF CONTRACTIONS:           59   (  59A   )
+ NUMBER OF CORE ORBITALS:           1   (   1A   )
+ NUMBER OF VALENCE ORBITALS:        8   (   8A   )
+
+
+ NUCLEAR REPULSION ENERGY   13.25168416
+
+
+ Eigenvalues of metric
+
+         1 0.330E-02 0.908E-02 0.915E-02 0.923E-02 0.928E-02 0.261E-01 0.264E-01 0.267E-01
+
+
+ Contracted 2-electron integrals neglected if value below      1.0D-11
+ AO integral compression algorithm  1   Integral accuracy      1.0D-11
+
+     8.651 MB (compressed) written to integral file ( 54.5%)
+
+
+ NUMBER OF SORTED TWO-ELECTRON INTEGRALS:    1567335.     BUFFER LENGTH:  32768
+ NUMBER OF SEGMENTS:   1  SEGMENT LENGTH:    1567335      RECORD LENGTH: 524288
+
+ Memory used in sort:       2.12 MW
+
+ SORT1 READ     2028348. AND WROTE     1486144. INTEGRALS IN      5 RECORDS. CPU TIME:     0.02 SEC, REAL TIME:     0.03 SEC
+ SORT2 READ     1486144. AND WROTE     1567335. INTEGRALS IN     33 RECORDS. CPU TIME:     0.05 SEC, REAL TIME:     0.06 SEC
+
+ FILE SIZES:   FILE 1:    16.4 MBYTE,  FILE 4:    21.0 MBYTE,   TOTAL:     37.4 MBYTE
+
+ OPERATOR DM      FOR CENTER  0  COORDINATES:    0.000000    0.000000    0.000000
+1PROGRAM * MULTI (Direct Multiconfiguration SCF)       Authors: P.J. Knowles, H.-J. Werner (1984)     S.T. Elbert (1988)
+
+
+
+ Number of closed-shell orbitals:   1 (   1 )
+ Number of active  orbitals:        8 (   8 )
+ Number of external orbitals:      50 (  50 )
+
+ State symmetry 1
+
+ Number of electrons:     7    Spin symmetry=Doublet   Space symmetry=1
+ Number of states:        3
+ Number of CSFs:       2352   (3920 determinants, 3920 intermediate states)
+
+ Molecular orbitals read from record     2140.2  Type=MCSCF/NATURAL  
+
+ Wavefunction dump at record             2140.1
+
+ Convergence thresholds  0.10E-05 (gradient)  0.10E-07 (energy)  0.10E-02 (step length)
+
+ Weight factors for state symmetry  1:    0.33333   0.33333   0.33333
+
+ Number of orbital rotations:      458   (     8 Core/Active     50 Core/Virtual   0 Active/Active    400 Active/Virtual)
+ Total number of variables:      12218
+
+
+ ITER. MIC  NCI  NEG     ENERGY(VAR)     ENERGY(PROJ)   ENERGY CHANGE     GRAD(0)  GRAD(ORB)   GRAD(CI)     STEP       TIME
+
+   1   17   24    0     -39.77820587     -39.77821222   -0.00000635    0.00430011 0.00000019 0.00000126  0.39D-02      0.29
+   2   29    9    0     -39.77821222     -39.77821222   -0.00000000    0.00000068 0.00000000 0.00000008  0.66D-05      0.45
+
+ ** WVFN ****  CONVERGENCE REACHED, FINAL GRADIENT:  0.22D-07
+
+
+ First order charge density matrix for state 1.1 saved on record  2140.1 (density set 1)
+ First order charge density matrix for state 2.1 saved on record  2140.1 (density set 2)
+ First order charge density matrix for state 3.1 saved on record  2140.1 (density set 3)
+
+ Results for state 1.1
+ =====================
+
+ !MCSCF STATE 1.1 Energy              -39.779691100345
+ Nuclear energy                        13.25168416
+ Kinetic energy                        40.02442274
+ One electron energy                  -75.55645798
+ Two electron energy                   22.52508272
+ Virial ratio                           1.99388544
+
+ !MCSCF STATE 1.1 Dipole moment        -0.37187059    -0.00000000     0.00000000
+ Dipole moment /Debye                  -0.94513886    -0.00000000     0.00000000
+
+ Results for state 2.1
+ =====================
+
+ !MCSCF STATE 2.1 Energy              -39.778219654905
+ Nuclear energy                        13.25168416
+ Kinetic energy                        40.02374546
+ One electron energy                  -75.55376210
+ Two electron energy                   22.52385829
+ Virial ratio                           1.99386550
+
+ !MCSCF STATE 2.1 Dipole moment        -0.00191692     0.00000000    -0.00000000
+ Dipole moment /Debye                  -0.00487201     0.00000000    -0.00000000
+
+ Results for state 3.1
+ =====================
+
+ !MCSCF STATE 3.1 Energy              -39.776725913366
+ Nuclear energy                        13.25168416
+ Kinetic energy                        40.02304869
+ One electron energy                  -75.55102690
+ Two electron energy                   22.52261683
+ Virial ratio                           1.99384548
+
+ !MCSCF STATE 3.1 Dipole moment         0.37567006    -0.00000000    -0.00000000
+ Dipole moment /Debye                   0.95479551    -0.00000000    -0.00000000
+
+ State-averaged charge density matrix saved on record  2140.1 (density set 4)
+
+ !MCSCF expec         <1.1|DMX|1.1>    -0.371870591187 au =    -0.945138857148 Debye
+ !MCSCF expec         <2.1|DMX|2.1>    -0.001916920554 au =    -0.004872006941 Debye
+ !MCSCF expec         <3.1|DMX|3.1>     0.375670058977 au =     0.954795508495 Debye
+
+ !MCSCF trans         <2.1|DMY|1.1>     0.265391616771 au =     0.674514025354 Debye
+ !MCSCF trans         <3.1|DMY|2.1>     0.263220281856 au =     0.668995403961 Debye
+
+ !MCSCF trans         <2.1|DMZ|1.1>    -0.265391616870 au =    -0.674514025605 Debye
+ !MCSCF trans         <3.1|DMZ|2.1>     0.263220281609 au =     0.668995403333 Debye
+
+
+ Natural orbital dump (state averaged) at molpro section  2140.1    (Orbital set 2)
+
+
+
+ **********************************************************************************************************************************
+ DATASETS  * FILE   NREC   LENGTH (MB)   RECORD NAMES
+              1      21       16.70       500      610      700      900      950      970     1000      129      960     1100   
+                                          VAR    BASINP    GEOM    SYMINP    ZMAT    AOBASIS   BASIS     P2S    ABASIS      S 
+                                         1400     1410     1200     1210     1080     1600     1650     1300     1700     2140   
+                                           T        V       H0       H01     AOSYM     SMH    MOLCAS    ERIS     OPER     MCSCF   
+                                         1380   
+                                         JKOP   
+
+              2       6        0.69       700     1000      520     2100     2140     5500   
+                                         GEOM     BASIS   MCVARS     RHF     MCSCF    HINFO   
+
+ PROGRAMS   *        TOTAL     MULTI      CUBE      CUBE      CUBE     MULTI        HF       INT
+ CPU TIMES  *         4.35      0.70      0.66      0.67      0.65      0.92      0.46      0.19
+ REAL TIME  *         5.13 SEC
+ DISK USED  *        38.11 MB      
+ **********************************************************************************************************************************
+1PROGRAM * ALASKA (Gradient of the energy)     Author: R. Lindh
+

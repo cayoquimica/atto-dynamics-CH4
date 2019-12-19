@@ -1,0 +1,22 @@
+memory,300,m
+basis=6-31++G(2d,2p)
+symmetry,nosym
+thresh,pspace=0.4
+
+geometry={
+C                   0                   0   			0
+H   0.6380357980   0.6380357980   0.6380357980
+H  -0.6380357980  -0.6380357980   0.6380357980
+H   0.6380357980  -0.6380357980  -0.6380357980
+H  -0.6380357980   0.6380357980  -0.6380357980       
+         }
+noorient
+{hf,orbital=2100.2;wf,9,1,1}
+{multi;start,2100.2;occ,9;pspace,0.4;dm;wf,9,1,1;state,3}
+!optg
+cube,state01.cube;density,2140.2,set=1,state=1.1; ! density and gradient of density for state 1
+cube,state02.cube;density,2140.2,set=2,state=2.1; ! density and gradient of density for state 1
+cube,state03.cube;density,2140.2,set=3,state=3.1; ! density and gradient of density for state 1
+
+
+frequencies
