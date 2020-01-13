@@ -1,0 +1,5 @@
+rm a.out 
+ifort -c -warn interface -traceback -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large lib_array.f90
+ifort -c -warn interface -traceback -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large photoelectron_spectrum.f90
+ifort -warn interface -traceback -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large lib_array.o photoelectron_spectrum.o
+rm *.o *.mod
