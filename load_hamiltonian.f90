@@ -9,11 +9,11 @@ use omp_lib
 implicit none
 integer                      :: n,jj,ii,nana !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
 real(kind=dp)                :: ompt0,ompt1,x1,x2,soma
-integer,parameter            :: q1_initial = 25
-integer,parameter            :: q1_final = 70
-integer,parameter            :: q2_initial = 75
-integer,parameter            :: q2_final = 115
-complex(kind=dp),allocatable :: pia(:),nwf0(:),pice(:),wf0(:)
+!integer,parameter            :: q1_initial = 25
+!integer,parameter            :: q1_final = 70
+!integer,parameter            :: q2_initial = 75
+!integer,parameter            :: q2_final = 115
+!complex(kind=dp),allocatable :: pia(:),nwf0(:),pice(:),wf0(:)
 integer                      :: init_wf
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -28,55 +28,53 @@ n=Nst*Nq1*Nq2 ! m=Nq1*Nq2*st %size of the Hamiltonian
 !$ ompt0 = omp_get_wtime()
 call load_data
 
-
-!$ ompt0 = omp_get_wtime()
-allocate ( nwf0(0:Nst*Nq1*Nq2-1) )
-nwf0=dcmplx(0.d0,0.d0)
-open(newunit=init_wf,file='eigen-vec-neutral',status='unknown')
-do i=0,s-1
-  read(init_wf,*) nwf0(i) !reading the neutral initial eigen state and writting in the first third part of the vector
-end do
-!Now read the photoinization coefficients and project them into the initial neutral ground state wave function
-allocate ( pice(0:Nst*Nq1*Nq2-1) )
-pice=dcmplx(0.d0,0.d0)
-allocate(pia(Nst))
-k = (q2_initial-1+20) * Nq1 + (q1_initial+27) - 1 !The -1 is because the vector starts at index 0
-!!$OMP parallel do default(private) shared(pice)
-do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated only for q2=75+20:115+20 and q1=25+27:70+27
-  do i=q1_initial+27,q1_final+27 !where the amplitudes of the eigen state of the neutral is non-zero (< 10^-8). This is the Frank-Condon region
-    call p_i_a(i-27,j-20,pia) !Evaluating the photoionization coeficients for all electronic states
-    pice(k)     = pia(1)
-    pice(k+s)   = pia(2)
-    pice(k+2*s) = pia(3)
-    k = k+1
-  end do
-  k = k + (Nq1-(q1_final+27)) + (q1_initial+27) - 1 !Add the zeros values from 70+27 until Nq1 and from 1 to 25+27. The -1 here is to anulate the last -1 of the previous loop
-end do
-!!$OMP end parallel do
-allocate ( wf0(0:Nst*Nq1*Nq2-1) )
-!wf0=dcmplx(0.d0,0.d0)
-!Projecting the photoionization coeficients into the neutral eigen state
-do i=0,s-1
-  wf0(i)     = nwf0(i) * pice(i)
-  wf0(i+s)   = nwf0(i) * pice(i+s)
-  wf0(i+2*s) = nwf0(i) * pice(i+2*s)
-end do
-!--------------------------------------------!
-!normalizing                                 !
-soma=0.d0                                    !
-do i=0,n-1                                   !
-  soma=soma+dconjg(wf0(i))*wf0(i)            !
-end do                                       !
-wf0=wf0/sqrt(soma)                           !
-!--------------------------------------------!
-open(unit=88,file='wfINIT',status='unknown')
-do i=0,n-1
-  write(88,*)'(',dreal(wf0(i)),',',dimag(wf0(i)),')'
-end do
-close(unit=88)
-!$ ompt1 = omp_get_wtime()
-write(*,*)'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
-
+!!$ ompt0 = omp_get_wtime()
+!allocate ( nwf0(0:Nst*Nq1*Nq2-1) )
+!nwf0=dcmplx(0.d0,0.d0)
+!open(newunit=init_wf,file='eigen-vec-neutral',status='unknown')
+!do i=0,s-1
+!  read(init_wf,*) nwf0(i) !reading the neutral initial eigen state and writting in the first third part of the vector
+!end do
+!!Now read the photoinization coefficients and project them into the initial neutral ground state wave function
+!allocate ( pice(0:Nst*Nq1*Nq2-1) )
+!pice=dcmplx(0.d0,0.d0)
+!allocate(pia(Nst))
+!k = (q2_initial-1+20) * Nq1 + (q1_initial+27) - 1 !The -1 is because the vector starts at index 0
+!!!$OMP parallel do default(private) shared(pice)
+!do j=q2_initial+20,q2_final+20  !The photoionization coefficiets were calculated only for q2=75+20:115+20 and q1=25+27:70+27
+!  do i=q1_initial+27,q1_final+27 !where the amplitudes of the eigen state of the neutral is non-zero (< 10^-8). This is the Frank-Condon region
+!    call p_i_a(i-27,j-20,pia) !Evaluating the photoionization coeficients for all electronic states
+!    pice(k)     = pia(1)
+!    pice(k+s)   = pia(2)
+!    pice(k+2*s) = pia(3)
+!    k = k+1
+!  end do
+!  k = k + (Nq1-(q1_final+27)) + (q1_initial+27) - 1 !Add the zeros values from 70+27 until Nq1 and from 1 to 25+27. The -1 here is to anulate the last -1 of the previous loop
+!end do
+!!!$OMP end parallel do
+!allocate ( wf0(0:Nst*Nq1*Nq2-1) )
+!!wf0=dcmplx(0.d0,0.d0)
+!!Projecting the photoionization coeficients into the neutral eigen state
+!do i=0,s-1
+!  wf0(i)     = nwf0(i) * pice(i)
+!  wf0(i+s)   = nwf0(i) * pice(i+s)
+!  wf0(i+2*s) = nwf0(i) * pice(i+2*s)
+!end do
+!!--------------------------------------------!
+!!normalizing                                 !
+!soma=0.d0                                    !
+!do i=0,n-1                                   !
+!  soma=soma+dconjg(wf0(i))*wf0(i)            !
+!end do                                       !
+!wf0=wf0/sqrt(soma)                           !
+!!--------------------------------------------!
+!open(unit=88,file='wfINIT',status='unknown')
+!do i=0,n-1
+!  write(88,*)'(',dreal(wf0(i)),',',dimag(wf0(i)),')'
+!end do
+!close(unit=88)
+!!$ ompt1 = omp_get_wtime()
+!write(*,*)'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
 
 
 call hamiltonian_matrix
@@ -143,11 +141,9 @@ do i=0,n-1 !running through rows                                                
   moq2_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                   !
 end do                                                                                                                      !
 !---------------------------------------------------------------------------------------------------------------------------!
-
 write(*,*)'CSR vectors for first derivative along q2 created'
 call nac_ha_modify
-
-deallocate(moq1,moq2)                                                                                                                             !
+deallocate(moq1,moq2)
 
 !I still calculate angular momentum without using the sparse matrix CSR method.                                                                   !
 !Deallocate these matrices to salve RAM at this point. They will be reallocated later again just to be used in the angular momentum subroutine    !
@@ -155,41 +151,64 @@ deallocate(moq1,moq2)                                                           
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 !==============================================!
 ! Loading dipoles                              !
-allocate (ax(0:n-1,0:n-1))                     !
-!$OMP PARALLEL DO shared(ax)                   !
+allocate (ay(0:n-1,0:n-1,0:2))                 !
+!$OMP PARALLEL DO shared(ay)                   !
 do i=0,n-1                                     !
   do j=0,n-1                                   !
-    ax(i,j)=0.d0                               !
+    ay(i,j,:)=0.d0                             !
   end do                                       !
 end do                                         !
 !$OMP end parallel do                          !
-ii=0                                           !
+!$OMP PARALLEL DO shared(ay)                   !
 do i=0,Nq1-1                                   !
   do j=0,Nq2-1                                 !
-    ax(ii    ,ii    ) = - dot_product( orientation, [ pdm1x(i+1,j+1),pdm1y(i+1,j+1),pdm1z(i+1,j+1) ] )  !
-    ax(s+ii  ,s+ii  ) = - dot_product( orientation, [ pdm2x(i+1,j+1),pdm2y(i+1,j+1),pdm2z(i+1,j+1) ] )  !
-    ax(2*s+ii,2*s+ii) = - dot_product( orientation, [ pdm3x(i+1,j+1),pdm3y(i+1,j+1),pdm3z(i+1,j+1) ] )  !
-!                                              !
-    ax(ii    ,s+ii  ) = - dot_product( orientation, [ tdm21x(i+1,j+1),tdm21y(i+1,j+1),tdm21z(i+1,j+1) ] )  !
-    ax(s+ii  ,ii    ) = - dot_product( orientation, [ tdm21x(i+1,j+1),tdm21y(i+1,j+1),tdm21z(i+1,j+1) ] )  !
-    ax(ii    ,2*s+ii) = - dot_product( orientation, [ tdm31x(i+1,j+1),tdm31y(i+1,j+1),tdm31z(i+1,j+1) ] )  !
-    ax(2*s+ii,ii    ) = - dot_product( orientation, [ tdm31x(i+1,j+1),tdm31y(i+1,j+1),tdm31z(i+1,j+1) ] )  !
-    ax(s+ii  ,2*s+ii) = - dot_product( orientation, [ tdm32x(i+1,j+1),tdm32y(i+1,j+1),tdm32z(i+1,j+1) ] )  !
-    ax(2*s+ii,s+ii  ) = - dot_product( orientation, [ tdm32x(i+1,j+1),tdm32y(i+1,j+1),tdm32z(i+1,j+1) ] )  !
-    ii=ii+1                                    !
+    ii = (i*(Nq2-1)+j)
+    ay(ii    ,ii    ,0) = - pdm1x(i+1,j+1)     !
+    ay(s+ii  ,s+ii  ,0) = - pdm2x(i+1,j+1)     !
+    ay(2*s+ii,2*s+ii,0) = - pdm3x(i+1,j+1)     !
+!
+    ay(ii    ,s+ii  ,0) = - tdm21x(i+1,j+1)    !
+    ay(s+ii  ,ii    ,0) = - tdm21x(i+1,j+1)    !
+    ay(ii    ,2*s+ii,0) = - tdm31x(i+1,j+1)    !
+    ay(2*s+ii,ii    ,0) = - tdm31x(i+1,j+1)    !
+    ay(s+ii  ,2*s+ii,0) = - tdm32x(i+1,j+1)    !
+    ay(2*s+ii,s+ii  ,0) = - tdm32x(i+1,j+1)    !
+
+
+    ay(ii    ,ii    ,1) = - pdm1y(i+1,j+1)     !
+    ay(s+ii  ,s+ii  ,1) = - pdm2y(i+1,j+1)     !
+    ay(2*s+ii,2*s+ii,1) = - pdm3y(i+1,j+1)     !
+!
+    ay(ii    ,s+ii  ,1) = - tdm21y(i+1,j+1)    !
+    ay(s+ii  ,ii    ,1) = - tdm21y(i+1,j+1)    !
+    ay(ii    ,2*s+ii,1) = - tdm31y(i+1,j+1)    !
+    ay(2*s+ii,ii    ,1) = - tdm31y(i+1,j+1)    !
+    ay(s+ii  ,2*s+ii,1) = - tdm32y(i+1,j+1)    !
+    ay(2*s+ii,s+ii  ,1) = - tdm32y(i+1,j+1)    !
+
+
+    ay(ii    ,ii    ,2) = - pdm1z(i+1,j+1)     !
+    ay(s+ii  ,s+ii  ,2) = - pdm2z(i+1,j+1)     !
+    ay(2*s+ii,2*s+ii,2) = - pdm3z(i+1,j+1)     !
+!
+    ay(ii    ,s+ii  ,2) = - tdm21z(i+1,j+1)    !
+    ay(s+ii  ,ii    ,2) = - tdm21z(i+1,j+1)    !
+    ay(ii    ,2*s+ii,2) = - tdm31z(i+1,j+1)    !
+    ay(2*s+ii,ii    ,2) = - tdm31z(i+1,j+1)    !
+    ay(s+ii  ,2*s+ii,2) = - tdm32z(i+1,j+1)    !
+    ay(2*s+ii,s+ii  ,2) = - tdm32z(i+1,j+1)    !
   end do                                       !
 end do                                         !
+!$OMP end parallel do                          !
 !==============================================!
-
 allocate (ham(0:n-1,0:n-1))
-!!$OMP PARALLEL DO shared(ax)
+!$OMP PARALLEL DO shared(ay,ham,Ha)
 do i=0,n-1
   do j=0,n-1
-    ham(i,j)=Ha(i,j)+ax(i,j)
+    ham(i,j)=Ha(i,j)+ay(i,j,0)+ay(i,j,1)+ay(i,j,2)
   end do
 end do
-
-!!$OMP end parallel do
+!$OMP end parallel do
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
 k=0                                                                                                                         !
@@ -203,7 +222,7 @@ end do                                                                          
 k_Ha=k                                                                                                                      !
 k_dip=k                                                                                                                     !
 write(*,*)'k_Ha = ',k_Ha                                                                                                    !
-allocate(Ha_val(0:k-1),Ha_rowc(0:n),Ha_row_col(0:k-1,0:1),dip_val(0:k-1))                                                   !
+allocate(Ha_val(0:k-1),Ha_rowc(0:n),Ha_row_col(0:k-1,0:1),dip_val(0:k-1,0:2))                                               !
 !                                                                                                                           !
 Ha_rowc=0.d0                                                                                                                !
 k=0                                                                                                                         !
@@ -213,15 +232,16 @@ do i=0,n-1 !running through rows                                                
       Ha_val(k)=Ha(i,j)  !storing each non-zero element                                                                     !
       Ha_row_col(k,0)=i !storing the row index of each non-zero element                                                     !
       Ha_row_col(k,1)=j !storing the column index of each non-zero element                                                  !
-      dip_val(k)=ax(i,j)  !storing each non-zero element                                                                    !
+      dip_val(k,0)=ay(i,j,0)  !storing each non-zero element                                                                !
+      dip_val(k,1)=ay(i,j,1)  !storing each non-zero element                                                                !
+      dip_val(k,2)=ay(i,j,2)  !storing each non-zero element                                                                !
       k=k+1                                                                                                                 !
     end if                                                                                                                  !
   end do                                                                                                                    !
   Ha_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                     ! 
 end do                                                                                                                      !
 !---------------------------------------------------------------------------------------------------------------------------!
-deallocate(Ha,ham,ax)
-!deallocate(ax)
+deallocate(Ha,ham,ay)
 call first_derivative_matrix_q1
 call first_derivative_matrix_q2
 !$ ompt1 = omp_get_wtime()
@@ -254,7 +274,7 @@ end do
 
 write(20,'(i12)')k_dip
 do i=0,k_dip-1
-  write(20,'(e23.15e3)')dip_val(i)
+  write(20,'(3e23.15e3)')dip_val(i,:)
 end do
 
 
@@ -501,7 +521,7 @@ do j=0,Nq2-1
     cont=cont+1
   end do
 end do
-!$OMP PARALLEL DO shared(moq1,moq2,ham,vec1,vec2,vec3,vec4,vec5,vec6)
+!!$OMP PARALLEL DO shared(moq1,moq2,ham,vec1,vec2,vec3,vec4,vec5,vec6)
 do i=0,s-1
   do j=0,s-1
     ham(i+0*s,j+1*s)= vec1(i)*moq1(i,j) + vec2(i)*moq2(i,j)
@@ -512,7 +532,7 @@ do i=0,s-1
     ham(j+2*s,i+1*s)= vec5(i)*moq1(i,j) + vec6(i)*moq2(i,j)
   end do
 end do
-!$OMP end parallel do
+!!$OMP end parallel do
 ! Merging this matrix with the one that includes the second derivatives and the potential energy, Ha
 !$OMP PARALLEL DO shared(ha,ham)
 do i=0,Nst*Nq1*Nq2-1
@@ -902,118 +922,118 @@ end subroutine hamiltonian_matrix
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-!Subroutine that calculates the photoionization amplitudes for a given geometry and a given electric field
-!Some parts of this function assumes that the number of electronic states is 3
-subroutine p_i_a(i1,i2,pic)
-use global_param
-implicit none 
-complex(kind=dp),dimension(Nst) :: pic
-integer                         :: i1,i2,ii,jj,kk
-character(len=21)               :: fname00
-character(len=199)              :: fpath0,fpath1
-integer                         :: file1,file2,file3,file4,file5
-integer,parameter               :: nang=512
-integer,parameter               :: nk=256
-real(kind=dp),allocatable       :: vec1(:,:),vec2(:,:),vec3(:,:)
-real(kind=dp)                   :: k0,k1,k2,e0,e1,e2,p_e(nk)
-real(kind=dp)                   :: phi(nang),theta(nang),domega
-complex(kind=dp),allocatable    :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),coef1(:,:),coef2(:,:)
-real(kind=dp)                   :: ip0,ip1,ip2
-integer                         :: aux1(Nst)
-real(kind=dp)                   :: aux2(Nst)
-
-allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
-allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
-call getcwd(fpath0) !getting the working directory path
-fname00='pice_10000000_0_0.dat'
-write(fname00(7:9),'(i0.3)') i2+100
-write(fname00(12:13),'(i0.2)') i1
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file1,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 1
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file2,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 2
-fpath1=TRIM(ADJUSTL(fpath0))//"/pice_files/"//fname00
-open(newunit=file3,file=fpath1,status='old')
-!now read the x, y and z components of the photoionization coupling elements.
-do ii=1,nk*nang
-  read(file1,*) vec1(ii,:)!,vec1(i,2),vec1(i,3),vec1(i,4),vec1(i,5),vec1(i,6)
-  read(file2,*) vec2(ii,:)!,vec2(i,2),vec2(i,3),vec2(i,4),vec2(i,5),vec2(i,6)
-  read(file3,*) vec3(ii,:)!,vec3(i,2),vec3(i,3),vec3(i,4),vec3(i,5),vec3(i,6)
-end do
-kk=1
-do ii=1,nk
-  do jj=1,nang
-    r0(ii,jj,1)=dcmplx( vec1(kk,1) , vec1(kk,2) )
-    r0(ii,jj,2)=dcmplx( vec1(kk,3) , vec1(kk,4) )
-    r0(ii,jj,3)=dcmplx( vec1(kk,5) , vec1(kk,6) )
-    r1(ii,jj,1)=dcmplx( vec2(kk,1) , vec2(kk,2) )
-    r1(ii,jj,2)=dcmplx( vec2(kk,3) , vec2(kk,4) )
-    r1(ii,jj,3)=dcmplx( vec2(kk,5) , vec2(kk,6) )
-    r2(ii,jj,1)=dcmplx( vec3(kk,1) , vec3(kk,2) )
-    r2(ii,jj,2)=dcmplx( vec3(kk,3) , vec3(kk,4) )
-    r2(ii,jj,3)=dcmplx( vec3(kk,5) , vec3(kk,6) )
-    kk=kk+1
-  end do
-end do
-open(newunit=file4,file='test_sym_dist3.txt',status='old')
-do ii=1,nang
-  read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
-end do
-
-ip0 = pot1(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for ground state of the cation
-ip1 = pot2(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for first excited state of the cation
-ip2 = pot3(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for second excited state of the cation
-e0 = e_ip - ip0 !Energy of the ionized electron if the molecule goes for the cation ground state
-e1 = e_ip - ip1 !Energy of the ionized electron if the molecule goes for the cation first excited state
-e2 = e_ip - ip2 !Energy of the ionized electron if the molecule goes for the cation second excited state
-
-domega=4*pi/nang
-coef0=0.d0
-coef1=0.d0
-coef2=0.d0
-do ii=1,nk
-  do jj=1,nang
-    coef0(ii,1) = coef0(ii,1) + r0(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef0(ii,2) = coef0(ii,2) + r0(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef0(ii,3) = coef0(ii,3) + r0(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,1) = coef1(ii,1) + r1(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,2) = coef1(ii,2) + r1(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef1(ii,3) = coef1(ii,3) + r1(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,1) = coef2(ii,1) + r2(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,2) = coef2(ii,2) + r2(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
-    coef2(ii,3) = coef2(ii,3) + r2(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
-  end do
-  p_e(ii) = 0.005859375d0 + (ii-1) * 0.00588235294117647d0 !Momentum values in which the photoionization matrix elements are spanned
-end do
-
-!define the correct i, the correct momentum of the electron
-aux2 = e_ip
-do ii=1,nk
-  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
-    aux1(1) = ii !Defining the value of the momentum of the leaving electron
-    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
-  end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
-    aux1(2) = ii !Defining the value of the momentum of the leaving electron
-    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
-  end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
-    aux1(3) = ii !Defining the value of the momentum of the leaving electron
-    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
-  end if
-end do
-
-!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
-pic(1) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef0(aux1(1),:) )
-pic(2) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef1(aux1(2),:) )
-pic(3) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef2(aux1(3),:) )
-close(unit=file1)
-close(unit=file2)
-close(unit=file3)
-close(unit=file4)
-end subroutine p_i_a
+!!Subroutine that calculates the photoionization amplitudes for a given geometry and a given electric field
+!!Some parts of this function assumes that the number of electronic states is 3
+!subroutine p_i_a(i1,i2,pic)
+!use global_param
+!implicit none 
+!complex(kind=dp),dimension(Nst) :: pic
+!integer                         :: i1,i2,ii,jj,kk
+!character(len=21)               :: fname00
+!character(len=199)              :: fpath0,fpath1
+!integer                         :: file1,file2,file3,file4,file5
+!integer,parameter               :: nang=512
+!integer,parameter               :: nk=256
+!real(kind=dp),allocatable       :: vec1(:,:),vec2(:,:),vec3(:,:)
+!real(kind=dp)                   :: k0,k1,k2,e0,e1,e2,p_e(nk)
+!real(kind=dp)                   :: phi(nang),theta(nang),domega
+!complex(kind=dp),allocatable    :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),coef1(:,:),coef2(:,:)
+!real(kind=dp)                   :: ip0,ip1,ip2
+!integer                         :: aux1(Nst)
+!real(kind=dp)                   :: aux2(Nst)
+!
+!allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
+!allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
+!call getcwd(fpath0) !getting the working directory path
+!fname00='pice_10000000_0_0.dat'
+!write(fname00(7:9),'(i0.3)') i2+100
+!write(fname00(12:13),'(i0.2)') i1
+!fpath1="~/pice_files/"//fname00
+!open(newunit=file1,file=fpath1,status='old')
+!write(fname00(17:17),'(i1)') 1
+!fpath1="~/pice_files/"//fname00
+!open(newunit=file2,file=fpath1,status='old')
+!write(fname00(17:17),'(i1)') 2
+!fpath1="~/pice_files/"//fname00
+!open(newunit=file3,file=fpath1,status='old')
+!!now read the x, y and z components of the photoionization coupling elements.
+!do ii=1,nk*nang
+!  read(file1,*) vec1(ii,:)!,vec1(i,2),vec1(i,3),vec1(i,4),vec1(i,5),vec1(i,6)
+!  read(file2,*) vec2(ii,:)!,vec2(i,2),vec2(i,3),vec2(i,4),vec2(i,5),vec2(i,6)
+!  read(file3,*) vec3(ii,:)!,vec3(i,2),vec3(i,3),vec3(i,4),vec3(i,5),vec3(i,6)
+!end do
+!kk=1
+!do ii=1,nk
+!  do jj=1,nang
+!    r0(ii,jj,1)=dcmplx( vec1(kk,1) , vec1(kk,2) )
+!    r0(ii,jj,2)=dcmplx( vec1(kk,3) , vec1(kk,4) )
+!    r0(ii,jj,3)=dcmplx( vec1(kk,5) , vec1(kk,6) )
+!    r1(ii,jj,1)=dcmplx( vec2(kk,1) , vec2(kk,2) )
+!    r1(ii,jj,2)=dcmplx( vec2(kk,3) , vec2(kk,4) )
+!    r1(ii,jj,3)=dcmplx( vec2(kk,5) , vec2(kk,6) )
+!    r2(ii,jj,1)=dcmplx( vec3(kk,1) , vec3(kk,2) )
+!    r2(ii,jj,2)=dcmplx( vec3(kk,3) , vec3(kk,4) )
+!    r2(ii,jj,3)=dcmplx( vec3(kk,5) , vec3(kk,6) )
+!    kk=kk+1
+!  end do
+!end do
+!open(newunit=file4,file='test_sym_dist3.txt',status='old')
+!do ii=1,nang
+!  read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
+!end do
+!
+!ip0 = pot1(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for ground state of the cation
+!ip1 = pot2(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for first excited state of the cation
+!ip2 = pot3(i1+27,i2+20) - e1neut(i1+27,i2+20) !ionization potential for second excited state of the cation
+!e0 = e_ip - ip0 !Energy of the ionized electron if the molecule goes for the cation ground state
+!e1 = e_ip - ip1 !Energy of the ionized electron if the molecule goes for the cation first excited state
+!e2 = e_ip - ip2 !Energy of the ionized electron if the molecule goes for the cation second excited state
+!
+!domega=4*pi/nang
+!coef0=0.d0
+!coef1=0.d0
+!coef2=0.d0
+!do ii=1,nk
+!  do jj=1,nang
+!    coef0(ii,1) = coef0(ii,1) + r0(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+!    coef0(ii,2) = coef0(ii,2) + r0(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+!    coef0(ii,3) = coef0(ii,3) + r0(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+!    coef1(ii,1) = coef1(ii,1) + r1(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+!    coef1(ii,2) = coef1(ii,2) + r1(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+!    coef1(ii,3) = coef1(ii,3) + r1(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+!    coef2(ii,1) = coef2(ii,1) + r2(ii,jj,1) * domega !Doing the operation int( PICE(k) * domega )
+!    coef2(ii,2) = coef2(ii,2) + r2(ii,jj,2) * domega !Doing the operation int( PICE(k) * domega )
+!    coef2(ii,3) = coef2(ii,3) + r2(ii,jj,3) * domega !Doing the operation int( PICE(k) * domega )
+!  end do
+!  p_e(ii) = 0.005859375d0 + (ii-1) * 0.00588235294117647d0 !Momentum values in which the photoionization matrix elements are spanned
+!end do
+!
+!!define the correct i, the correct momentum of the electron
+!aux2 = e_ip
+!do ii=1,nk
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
+!    aux1(1) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
+!  end if
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
+!    aux1(2) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
+!  end if
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
+!    aux1(3) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
+!  end if
+!end do
+!
+!!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
+!pic(1) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef0(aux1(1),:) )
+!pic(2) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef1(aux1(2),:) )
+!pic(3) = - dsqrt(2.d0) * E00 * dot_product( orientation , coef2(aux1(3),:) )
+!close(unit=file1)
+!close(unit=file2)
+!close(unit=file3)
+!close(unit=file4)
+!end subroutine p_i_a
 
 
 
