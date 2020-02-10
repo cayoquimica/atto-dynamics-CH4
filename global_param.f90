@@ -11,12 +11,12 @@ integer,parameter                          :: q1_initial = 25
 integer,parameter                          :: q1_final = 70
 integer,parameter                          :: q2_initial = 75
 integer,parameter                          :: q2_final = 115
-integer,parameter                          :: nsamples = 1*4 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
-integer,parameter                          :: nfiles = 1000 !Number of snapshots in time to save
-integer,parameter                          :: npoints = 250000 !Number of time steps to take in the simulation
+integer,parameter                          :: nsamples = 25*6!25*4 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
+integer,parameter                          :: nfiles = 2000 !Number of snapshots in time to save
+integer,parameter                          :: npoints = 100000 !Number of time steps to take in the simulation
 complex(kind=dp), parameter                :: im=dcmplx(0.d0,1.d0) !imaginary unity
 real(kind=dp),parameter                    :: t0 = 0.d0 !Initial time
-real(kind=dp),parameter                    :: tf = 2500.d0 !Final time
+real(kind=dp),parameter                    :: tf = 2000.d0 !Final time
 real(kind=dp),parameter                    :: tstep = (tf-t0)/npoints !Time step
 real(kind=dp),parameter                    :: pi = 3.141592653589793d0
 real(kind=dp),parameter                    :: coneAng = 10.d0 * pi / 180.d0 !Angle around each bond to sample ramdonly for initial photoionizations
@@ -43,20 +43,21 @@ real(kind=dp),dimension(:,:),allocatable   :: Ha! Hamiltonian matrix
 real(kind=dp),dimension(:,:,:),allocatable :: ay! Hamiltonian matrix
 real(kind=dp),dimension(:,:),allocatable   :: ham,ax ! Variable to store the Hamiltonian matrix temporary
 real(kind=dp),dimension(:,:),allocatable   :: moq1,moq2! Momentum matrix
-complex(kind=dp),allocatable               :: wfout(:,:) 
+complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:)
 real(kind=dp),allocatable                  :: Ha_val(:),dip_val(:,:),am_val(:),moq1_val(:),moq2_val(:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: Ha_rowc(:),Ha_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: moq1_rowc(:),moq1_row_col(:,:),moq2_rowc(:),moq2_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
 real(kind=dp)                              :: mass1,mass2,mass3 !Reduced masses to be used in the second derivative
 real(kind=dp)                              :: Et !Final electrical field of the pulse
-real(kind=dp),dimension(3)                 :: orientation,orie,u !Orientation of the electric field of the ionizing pulse
+real(kind=dp),dimension(3)                 :: orientation,u !Orientation of the electric field of the ionizing pulse
+real(kind=dp),allocatable                  :: orie(:,:) !Vector with the random orientations of the electric field of the ionizing pulse
 real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const3,E_init
 complex(kind=dp),allocatable               :: pia(:,:),nwf0(:),pice(:),wf0(:)
 complex(kind=dp)                           :: phote( (q1_final-q1_initial+1)*(q2_final-q2_initial+1), Nst, 3 )
-real(kind=dp),dimension(0:npoints)         :: e1,e2,e3,L1,L2,L3,sum1,sum2,sum3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3,Te1,Te2,Te3
-real(kind=dp),dimension(0:npoints)         :: fa,fb,fc,fd,fe,ff,fg,fh,fi,fj,fk,fl,fm,fn,fo 
-real(kind=dp)                              :: momq1t(npoints),momq2t(npoints),maxmomq1(nsamples),maxmomq2(nsamples) ! This is for saving norm through time
+real(kind=dp),dimension(0:nfiles)          :: e1,e2,e3,L1,L2,L3,sum1,sum2,sum3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3,Te1,Te2,Te3
+real(kind=dp),dimension(0:nfiles)          :: fa,fb,fc,fd,fe,ff,fg,fh,fi,fj,fk,fl,fm,fn,fo 
+real(kind=dp)                              :: momq1t(nfiles),momq2t(nfiles),maxmomq1(nsamples),maxmomq2(nsamples) ! This is for saving norm through time
 contains
 
 subroutine load_data
@@ -358,9 +359,52 @@ close(unit=file2)
 close(unit=file3)
 close(unit=file4)
 end subroutine p_i_a
+!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!subroutine generate_random_orientation
+!implicit none
+!integer :: n
+!real(kind=dp),allocatable :: temp_m(:,:)
+!n = nsamples/8
+!allocate(temp_m(n,3))
+!call random_number(temp_m)
+!do i = 1,n
+!  temp_m(i,:) = temp_m(i,:) / norm2(temp_m(i,:)) * sqrt(3.d0)
+!end do
+!orie(1:n,:) = temp_m(:,:)
+!do i = 1,n
+!  orie(i+n,:) = rotz( temp_m(i,:), 90.d0*pi/180.d0 )
+!end do
+!do i = 1,2*n
+!  orie(i+n*2,:) = rotz( orie(i,:),180.d0*pi/180.d0 )
+!end do
+!do i = 1,4*n
+!  orie(i+n*4,:) = - orie(i,:)
+!end do
+!
+!end subroutine generate_random_orientation
+!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+function rotz(vec,ang)
+!this subroutine takes a vector components x,y and z and rotates by an angle ang around the Z axis, returning the rotated vector
+implicit none
+real(kind=dp) :: vec(3),ang,matrix(3,3),rotz(3)
+
+matrix(1,1) = cos(ang)
+matrix(2,1) =-sin(ang)
+matrix(3,1) = 0.d0
+matrix(1,2) = sin(ang)
+matrix(2,2) = cos(ang)
+matrix(3,2) = 0.d0
+matrix(1,3) = 0.d0
+matrix(2,3) = 0.d0
+matrix(3,3) = 1.d0
+
+rotz(:) = matmul(matrix,vec)
+
+return
+end function rotz
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine generate_random_orientation
-real(kind=dp) :: x,w,z,ang,u(3),rot,matrix(3,3),matrix2(3,3),eye(3,3),rotmatrix(3,3)
+real(kind=dp) :: x,w,z,ang,u(3),rot,matrix(3,3),matrix2(3,3),eye(3,3),rotmatrix(3,3),normfactor
 call random_number(z)
 z = z * (1.d0 - dcos(coneAng)) + dcos(coneAng)
 call random_number(ang)
@@ -368,8 +412,13 @@ ang = ang * 2.d0 * pi
 x = dsqrt(1.d0 - z**2.d0) * dcos(ang)
 w = dsqrt(1.d0 - z**2.d0) * dsin(ang) !The y component
 !rotating x, w and z to be around each bond
-u = [-1.d0 * orie(2)/dsqrt(3.d0) , 1.d0 * orie(1)/dsqrt(3.d0) , 0.d0 ]
-rot = acos( dot_product(orie,[0,0,1]) ) 
+u = [-1.d0 * orie(1,2), 1.d0 * orie(1,1), 0.d0 ]/norm2(orie(1,:)) !Cross product between [0,0,1] and orie
+!normfactor = dsqrt( u(1)**2.d0 + u(2)**2.d0 + u(3)**2.d0 )
+u = u / norm2(u)
+if (u(1) /= u(1) .and. u(2) /= u(2) .and. u(3) /= u(3)) then
+  u = [0.d0, 0.d0, 0.d0]
+end if
+rot = acos( dot_product(orie(1,:)/norm2(orie(1,:)),[0,0,1]) )
 matrix(1,1) = 0.d0
 matrix(1,2) =-u(3)
 matrix(1,3) = u(2)
@@ -391,7 +440,7 @@ matrix2(3,2) = u(3)*u(2)
 matrix2(3,3) = u(3)*u(3)
 
 eye(1,1) = 1.d0
-eye(1,2) = 0.d0 
+eye(1,2) = 0.d0
 eye(1,3) = 0.d0
 eye(2,1) = 0.d0
 eye(2,2) = 1.d0
@@ -399,14 +448,18 @@ eye(2,3) = 0.d0
 eye(3,1) = 0.d0
 eye(3,2) = 0.d0
 eye(3,3) = 1.d0
- 
+
 rotmatrix(:,:) = dcos(rot) * eye(:,:) + dsin(rot) * matrix + ( 1.d0 - dcos(rot) ) * matrix2
 
-x = rotmatrix(1,1)*x + rotmatrix(1,2)*w + rotmatrix(1,3)*z
-w = rotmatrix(2,1)*x + rotmatrix(2,2)*w + rotmatrix(2,3)*z
-z = rotmatrix(3,1)*x + rotmatrix(3,2)*w + rotmatrix(3,3)*z
+orientation(1) = rotmatrix(1,1)*x + rotmatrix(1,2)*w + rotmatrix(1,3)*z
+orientation(2) = rotmatrix(2,1)*x + rotmatrix(2,2)*w + rotmatrix(2,3)*z
+orientation(3) = rotmatrix(3,1)*x + rotmatrix(3,2)*w + rotmatrix(3,3)*z
 
-orientation = [x,w,z]
+!write(*,'(3f7.4)')orie(1,:)
+!write(*,'(3f7.4)')u
+!write(*,'(3f7.4)')orientation
+!read(*,*)
+
 end subroutine generate_random_orientation
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end module global_param

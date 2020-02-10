@@ -11,7 +11,7 @@ implicit none
 external                     :: rkdumb,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
 integer                      :: init_wf,ppp,gg
 integer                      :: cont,n,jj,ii !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
-complex(kind=dp),allocatable :: wfinal(:,:)!pice(:),nwf0(:)
+real(kind=dp),allocatable    :: wfinal(:,:)!pice(:),nwf0(:)
 real(kind=dp)                :: q10,q20 ! point along q1 and q2 where the minimum global C2v is
 real(kind=dp)                :: t,truni,trunf,start_time,stop_time,ompt0,ompt1,tt1,tt0 !time counters
 complex(kind=dp)             :: mom(0:Nst*Nq1*Nq2-1),am(0:Nst*Nq1*Nq2-1) !vectors to store operators acting on the wave function
@@ -82,7 +82,7 @@ write(100,'(a50,f11.4)')'Step size in coordinate 1 =',sq1
 write(100,'(a50,f11.4)')'Step size in coordinate 2 =',sq2
 write(100,'(a50,f11.4)')'Initial 1 / dq1 =',1.d0/sq1
 write(100,'(a50,f11.4)')'Initial 1 / dq2 =',1.d0/sq2
-write(100,'(a72,f11.4)')'Number of initial random orientations for the ionizing electric field = ',nsamples
+write(100,'(a72,i5)')'Number of initial random orientations for the ionizing electric field = ',nsamples
 write(100,'(a50,i7,a17,f6.1,a15)')'The time evolution goes until =',int(tf),' atomic units or ',tf*24.18884d0/1000.d0,' femtoseconds'
 write(100,'(a50,i)')'Number of time evaluations =',npoints
 write(100,'(a50,f6.4,a8,f10.2,a12)')'time step =',tstep,' au. or ',tstep*24.18884d0,' attoseconds'
@@ -116,70 +116,95 @@ end do
 write(100,'(a)')'Photoelecton coupling elements loaded'
 write(100,'(a)')'Initiating dynamics'
 allocate ( wfout(0:n-1,0:nfiles),wfinal(0:n-1,0:nfiles) )
-wfinal=dcmplx(0.d0,0.d0)
+allocate( coh(0:n-1,0:nfiles),cohe(0:n-1,0:nfiles) )
+wfinal = 0.d0
+cohe = dcmplx(0.d0,0.d0)
+allocate( orie(nsamples,3) )
 
-!CALL init_random_seed()         ! see example of RANDOM_SEED
+call generate_random_orientation
+
+open(unit=44,file='orientations',status='unknown')
 fa(:)=0.d0;fb(:)=0.d0;fc(:)=0.d0;fd(:)=0.d0;fe(:)=0.d0;ff(:)=0.d0;fg(:)=0.d0;fh(:)=0.d0;fi(:)=0.d0;fj(:)=0.d0;fk(:)=0.d0
 fl(:)=0.d0;fm(:)=0.d0;fn(:)=0.d0;fo(:)=0.d0
 do ppp = 1,nsamples
-  if ( ppp <= nsamples/4 ) then
-    orie = [ 1.d0, 1.d0, 1.d0 ]
-    call generate_random_orientation
-    if ( nsamples == 4 ) then 
+!  if ( ppp <= nsamples/6 ) then
+!    orie(1,:) = [ 1.d0, 0.d0, 0.d0 ]
+!    call generate_random_orientation
+!  elseif ( ppp > nsamples/6 .and. ppp <= nsamples/6*2 ) then
+!    orie(1,:) = [-1.d0, 0.d0, 0.d0 ]
+!    call generate_random_orientation
+!  elseif ( ppp > nsamples/6*2 .and. ppp <= nsamples/6*3 ) then
+!    orie(1,:) = [ 0.d0, 1.d0, 0.d0 ]
+!    call generate_random_orientation
+!  elseif ( ppp > nsamples/6*3 .and. ppp <= nsamples/6*4 ) then
+!    orie(1,:) = [ 0.d0,-1.d0, 0.d0 ]
+!    call generate_random_orientation
+!  elseif ( ppp > nsamples/6*4 .and. ppp <= nsamples/6*5 ) then
+!    orie(1,:) = [ 0.d0, 0.d0, 1.d0 ]
+!    call generate_random_orientation
+!  elseif (nsamples == 1 ) then
+!    orientation = [ 1.d0, 1.d0, 1.d0]
+!  else
+!    orie(1,:) = [ 0.d0, 0.d0,-1.d0 ]
+!    call generate_random_orientation
+!  end if
+  if (nsamples == 4 ) then
+    if ( ppp == 1 ) then
       orientation = [ 1.d0, 1.d0, 1.d0]
-    end if
-  elseif ( ppp > nsamples/4 .and. ppp <= nsamples/4*2 ) then
-    orie = [-1.d0,-1.d0, 1.d0 ]
-    call generate_random_orientation
-    if ( nsamples == 4 ) then 
+    elseif ( ppp == 2 ) then
       orientation = [-1.d0,-1.d0, 1.d0]
-    end if
-  elseif ( ppp > nsamples/4*2 .and. ppp <= nsamples/4*3 ) then
-    orie = [ 1.d0,-1.d0,-1.d0 ]
-    call generate_random_orientation
-    if ( nsamples == 4 ) then 
+    elseif ( ppp == 3 ) then
       orientation = [ 1.d0,-1.d0,-1.d0]
-    end if
-  elseif (nsamples == 1 ) then
-    orientation = [ 1.d0, 1.d0, 1.d0]
-  else
-    orie = [-1.d0, 1.d0,-1.d0 ]
-    call generate_random_orientation
-    if ( nsamples == 4 ) then 
+    else
       orientation = [-1.d0, 1.d0,-1.d0]
     end if
+  elseif (nsamples == 6 ) then
+    if ( ppp == 1 ) then
+      orientation = [ 1.d0, 0.d0, 0.d0]
+    elseif ( ppp == 2 ) then
+      orientation = [-1.d0, 0.d0, 0.d0]
+    elseif ( ppp == 3 ) then
+      orientation = [ 0.d0, 1.d0, 0.d0]
+    elseif ( ppp == 4 ) then
+      orientation = [ 0.d0,-1.d0, 0.d0]
+    elseif ( ppp == 5 ) then
+      orientation = [ 0.d0, 0.d0, 1.d0]
+    else
+      orientation = [ 0.d0, 0.d0,-1.d0]
+    end if
+  else
+    orientation = orie(ppp,:)
   end if
+
+  write(44,'(3f15.7)') orientation
   call generate_initial_wf
   wfout(:,0) = wf0(:)
-
-
-
-
-!open(unit=876,file='wfINIT-h1',status='old')
-!do i=0,n-1
-!  read(876,*)wfout(i,1)
-!  if ( wfout(i,0) /= wfout(i,1) ) then
-!    write(100,*)'Error in line ',i
-!    read(*,*)
-!  endif
-!enddo
-!write(*,*)'tudo certo até aqui'
-!read(*,*)
-
-
-
-
+  do i = 0,s-1
+    coh(i,0)     = dconjg(wf0(i))   * wf0(i+s)
+    coh(i+s,0)   = dconjg(wf0(i))   * wf0(i+2*s)
+    coh(i+2*s,0) = dconjg(wf0(i+s)) * wf0(i+2*s)
+  end do
+  fname='iniWF-r-ori0000.h5'
+  write(fname(12:15),'(i0.4)') ppp 
+  call save_vector_h5(real(wf0),n,fname,18)
+  fname='iniWF-i-ori0000.h5'
+  write(fname(12:15),'(i0.4)') ppp 
+  call save_vector_h5(aimag(wf0),n,fname,18)
+  
   call rkdumb(wf0,n,HA_calc)
   maxmomq1(ppp) = maxval(momq1t)
   maxmomq2(ppp) = maxval(momq2t)
-  !$OMP parallel do shared(wfout)
+  !$OMP parallel do shared(wfout,wfinal)
   do j = 0,nfiles
     do i = 0,n-1
-      wfout(i,j) = dconjg( wfout(i,j) ) * wfout(i,j)
+      wfinal(i,j) = wfinal(i,j) + dconjg( wfout(i,j) ) * wfout(i,j)
     end do
   end do
   !$OMP end parallel do
-  wfinal(:,:) = wfinal(:,:) + wfout(:,:)
+  cohe(0:s-1,:)   = cohe(0:s-1,:)   + coh(0:s-1,:)
+  cohe(s:2*s-1,:) = cohe(s:2*s-1,:) + coh(s:2*s-1,:)
+  cohe(2*s:n-1,:) = cohe(2*s:n-1,:) + coh(2*s:n-1,:)
+
   fa(:) = fa(:) + sum1(:)
   fb(:) = fb(:) + sum2(:)
   fc(:) = fc(:) + sum3(:)
@@ -195,10 +220,10 @@ do ppp = 1,nsamples
   fm(:) = fm(:) + pq2_2(:)
   fn(:) = fn(:) + pq1_3(:)
   fo(:) = fo(:) + pq2_3(:)
-write(100,'(a10,f7.2,a2)')'Progress: ',real(real(ppp)/real(nsamples)),' %'
+write(100,'(a10,f7.2,a2)')'Progress: ',real(real(ppp)/real(nsamples)*100),' %'
 end do
-
-wfinal(:,:) = wfinal(:,:) / nsamples 
+wfinal(:,:) = wfinal(:,:) / nsamples
+cohe(:,:) = cohe(:,:) / nsamples
 fa(:) = fa(:) / nsamples 
 fb(:) = fb(:) / nsamples 
 fc(:) = fc(:) / nsamples 
@@ -214,6 +239,12 @@ fl(:) = fl(:) / nsamples
 fm(:) = fm(:) / nsamples 
 fn(:) = fn(:) / nsamples 
 fo(:) = fo(:) / nsamples 
+!if ( all(wfinal(:,0) == 0.d0) ) then
+!  write(100,*)'Error in wfout. It is all zeros '
+!  read(*,*)
+!endif
+!write(*,*)'tudo certo até aqui'
+!read(*,*)
 
 !WRITE THE FINAL RESULTS!!!!!
 open(unit=15,file='alldata.data',status='unknown')
@@ -236,20 +267,27 @@ do ll=1,nfiles ! for saving 1000 time samples
   fname='time-pop-000000.h5'
   write(fname(10:15),'(i0.6)') ll
   call save_vector_h5(wfinal(:,gg-1),n,fname,18)
+  fname='real-coh-000000.h5'
+  write(fname(10:15),'(i0.6)') ll
+  call save_vector_h5(real(cohe(:,gg-1)),n,fname,18)
+  fname='imag-coh-000000.h5'
+  write(fname(10:15),'(i0.6)') ll
+  call save_vector_h5(aimag(cohe(:,gg-1)),n,fname,18)
+
   Et = (E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
   write(15,'(17(es26.16e3))') t-tstep,Et,fa(gg),fb(gg),fc(gg),fd(gg),fe(gg),ff(gg),fg(gg),fh(gg),fi(gg),fj(gg),fk(gg),&
 fl(gg),fm(gg),fn(gg),fo(gg)
   write(100,'(f9.2,11(e12.3e3))') t,Et,fd(gg),fe(gg),ff(gg),fd(gg)+fe(gg)+ff(gg)-(fd(0)+fe(0)+ff(0)),fa(gg),fb(gg),fc(gg),&
 fa(gg)+fb(gg)+fc(gg)-1.d0,fg(gg)+fh(gg)+fi(gg)
 end do
-write(100,'(a30,(e12.3e3))')'Norm conservation =',( fa(0)+fb(0)+fc(0) )-( fa(npoints) + fb(npoints) + fc(npoints) )
-write(100,'(a30,(e12.3e3))')'Final norm for state 1 =',fa(npoints)
-write(100,'(a30,(e12.3e3))')'Final norm for state 2 =',fb(npoints)
-write(100,'(a30,(e12.3e3))')'Final norm for state 3 =',fc(npoints)
-write(100,'(a30,(e12.3e3),a8)')'Energy conservation =',(fd(0)+fe(0)+ff(0))-(fd(npoints)+fe(npoints)+ff(npoints)),' hartree'
-write(100,'(a30,(f20.15),a8)')'Final total energy state 1 =',fd(npoints),' hartree'
-write(100,'(a30,(f20.15),a8)')'Final total energy state 2 =',fe(npoints),' hartree'
-write(100,'(a30,(f20.15),a8)')'Final total energy state 3 =',ff(npoints),' hartree'
+write(100,'(a30,(e12.3e3))')'Norm conservation =',( fa(0)+fb(0)+fc(0) )-( fa(nfiles) + fb(nfiles) + fc(nfiles) )
+write(100,'(a30,(e12.3e3))')'Final norm for state 1 =',fa(nfiles)
+write(100,'(a30,(e12.3e3))')'Final norm for state 2 =',fb(nfiles)
+write(100,'(a30,(e12.3e3))')'Final norm for state 3 =',fc(nfiles)
+write(100,'(a30,(e12.3e3),a8)')'Energy conservation =',(fd(0)+fe(0)+ff(0))-(fd(nfiles)+fe(nfiles)+ff(nfiles)),' hartree'
+write(100,'(a30,(f20.15),a8)')'Final total energy state 1 =',fd(nfiles),' hartree'
+write(100,'(a30,(f20.15),a8)')'Final total energy state 2 =',fe(nfiles),' hartree'
+write(100,'(a30,(f20.15),a8)')'Final total energy state 3 =',ff(nfiles),' hartree'
 
 open(unit=222,file='final-wave-packet',status='unknown')
 do i=0,n-1
@@ -330,6 +368,11 @@ do ll=1,nfiles ! for saving 1000 time samples
     t=t+h
   end do
   wfout(:,gg) = y(:)
+  do i = 0,s-1
+    coh(i,gg)     = dconjg(y(i))   * y(i+s)
+    coh(i+s,gg)   = dconjg(y(i))   * y(i+2*s)
+    coh(i+2*s,gg) = dconjg(y(i+s)) * y(i+2*s)
+  end do
   !------------------------------------------------------------!
   !Checking momentum and saving norm                           !
   call momentum_calc_q1(y,momq1,n) ! evaluating dydq           !
@@ -512,6 +555,17 @@ integer,parameter   :: rank = 1      ! Dataset rank = number of dimensions
 integer             :: error         ! Error flag
 dims=n
 write(dsetname,'(<le-3>a)') fname(1:le-3)
+
+
+!if ( all(x == 0.d0) ) then
+!  write(100,*)'Error in wfout. It is all zeros '
+!  read(*,*)
+!endif
+!write(*,*)'tudo certo até aqui,dentro do save'
+!read(*,*)
+
+
+
 ! Initialize FORTRAN interface.
 call h5open_f(error)
 ! Create a new file using default properties.
