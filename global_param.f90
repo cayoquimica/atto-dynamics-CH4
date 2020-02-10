@@ -11,7 +11,7 @@ integer,parameter                          :: q1_initial = 25
 integer,parameter                          :: q1_final = 70
 integer,parameter                          :: q2_initial = 75
 integer,parameter                          :: q2_final = 115
-integer,parameter                          :: nsamples = 25*6!25*4 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
+integer,parameter                          :: nsamples = 25*8!25*4 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
 integer,parameter                          :: nfiles = 2000 !Number of snapshots in time to save
 integer,parameter                          :: npoints = 100000 !Number of time steps to take in the simulation
 complex(kind=dp), parameter                :: im=dcmplx(0.d0,1.d0) !imaginary unity
