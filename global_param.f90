@@ -1,7 +1,7 @@
 module global_param
 implicit none
 integer, parameter                         :: dp = kind(1.d0) 
-integer                                    :: i,j,k,l,ll,k_Ha,k_dip,k_moq1,k_moq2,k_am,ij
+integer                                    :: i,j,k,l,ll,k_Ha,k_dip,k_moq1,k_moq2,k_am,ij,k_Ha2
 integer, parameter                         :: NA=5 !Number of atoms
 integer, parameter                         :: Nst=3 !number of electronic states
 integer, parameter                         :: Nq1=146 !126 !number of points of the grid along q1
@@ -11,15 +11,15 @@ integer,parameter                          :: q1_initial = 25
 integer,parameter                          :: q1_final = 70
 integer,parameter                          :: q2_initial = 75
 integer,parameter                          :: q2_final = 115
-integer,parameter                          :: nsamples = 25*8!25*4 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
+integer,parameter                          :: nsamples = 50*8 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
 integer,parameter                          :: nfiles = 2000 !Number of snapshots in time to save
-integer,parameter                          :: npoints = 100000 !Number of time steps to take in the simulation
+integer,parameter                          :: npoints = 50000 !Number of time steps to take in the simulation
 complex(kind=dp), parameter                :: im=dcmplx(0.d0,1.d0) !imaginary unity
 real(kind=dp),parameter                    :: t0 = 0.d0 !Initial time
-real(kind=dp),parameter                    :: tf = 2000.d0 !Final time
+real(kind=dp),parameter                    :: tf = 500.d0 !Final time
 real(kind=dp),parameter                    :: tstep = (tf-t0)/npoints !Time step
 real(kind=dp),parameter                    :: pi = 3.141592653589793d0
-real(kind=dp),parameter                    :: coneAng = 10.d0 * pi / 180.d0 !Angle around each bond to sample ramdonly for initial photoionizations
+!real(kind=dp),parameter                    :: coneAng = 10.d0 * pi / 180.d0 !Angle around each bond to sample ramdonly for initial photoionizations
 real(kind=dp),parameter                    :: sq1=0.08d0 !step in q1 in atomic units
 real(kind=dp),parameter                    :: sq2=0.07d0 !step in q1 in atomic units
 real(kind=dp),parameter                    :: saw2au=1822.889950851334d0 !mass conversion factor from Standard atomic weight to atomic units
@@ -31,7 +31,7 @@ real(kind=dp),parameter                    :: phase = 0.d0 !phase factor for the
 real(kind=dp),parameter                    :: freq =0.056937d0 !0.512285550500502 is the ionizating pulse !0.056937d0 !frequency of the pulse, in a.u. - 800 nm of wavelength
 real(kind=dp),parameter                    :: sig = 100.d0  ! 50 approx 1200 attoseconds - width of the gaussian envelop
 real(kind=dp),parameter                    :: E00 = 0.00d0 !0.05d0 !Electric field intensity
-real(kind=dp),parameter                    :: e_ip =  1.d0 !Energy of the ionizing pulse in atomic units 1 = approx 27 ev
+real(kind=dp),parameter                    :: e_ip = 10.d0/27.21138628d0 !Energy of the ionizing pulse in atomic units approx 21.22 ev - the Helium ressonance band
 real(kind=dp),dimension(3), parameter      :: ori=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the probing pulse
 real(kind=dp)                              :: mass(3*NA) !3N Vector with the masses of the atoms
 real(kind=dp)                              :: q1(3*NA),q2(3*NA),q1i(3*NA),q2i(3*NA),ai,bi,aii,bii !Conversion vector from internal coordinates q1 and q2 to cartesian coordinates
@@ -43,11 +43,13 @@ real(kind=dp),dimension(:,:),allocatable   :: Ha! Hamiltonian matrix
 real(kind=dp),dimension(:,:,:),allocatable :: ay! Hamiltonian matrix
 real(kind=dp),dimension(:,:),allocatable   :: ham,ax ! Variable to store the Hamiltonian matrix temporary
 real(kind=dp),dimension(:,:),allocatable   :: moq1,moq2! Momentum matrix
-complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:)
+complex(kind=dp)                           :: y_nac(0:Nst*s-1)
+complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:),y_f(:,:)
 real(kind=dp),allocatable                  :: Ha_val(:),dip_val(:,:),am_val(:),moq1_val(:),moq2_val(:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: Ha_rowc(:),Ha_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: moq1_rowc(:),moq1_row_col(:,:),moq2_rowc(:),moq2_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: Ha2_val(:),Ha2_rowc(:),Ha2_row_col(:,:)
 real(kind=dp)                              :: mass1,mass2,mass3 !Reduced masses to be used in the second derivative
 real(kind=dp)                              :: Et !Final electrical field of the pulse
 real(kind=dp),dimension(3)                 :: orientation,u !Orientation of the electric field of the ionizing pulse
@@ -267,7 +269,7 @@ real(kind=dp)                     :: phi(nang),theta(nang),domega
 complex(kind=dp),allocatable      :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),coef1(:,:),coef2(:,:)
 real(kind=dp)                     :: ip0,ip1,ip2
 integer                           :: aux1(Nst)
-real(kind=dp)                     :: aux2(Nst)
+real(kind=dp)                     :: aux2(Nst),aux3(Nst)
 
 allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
 allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
@@ -333,56 +335,89 @@ do ii=1,nk
   p_e(ii) = 0.005859375d0 + (ii-1) * 0.00588235294117647d0 !Momentum values in which the photoionization matrix elements are spanned
 end do
 
+
 !define the correct i, the correct momentum of the electron
 aux2 = e_ip
 do ii=1,nk
-  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
+  if ( dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip0))**2.d0) < aux2(1) ) then
     aux1(1) = ii !Defining the value of the momentum of the leaving electron
-    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
+    aux2(1) = dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip0))**2.d0)
+    aux3(1) = p_e(ii)
   end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
+  if ( dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip1))**2.d0) < aux2(2) ) then
     aux1(2) = ii !Defining the value of the momentum of the leaving electron
-    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
+    aux2(2) = dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip1))**2.d0)
+    aux3(2) = p_e(ii)
   end if
-  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
+  if ( dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip2))**2.d0) < aux2(3) ) then
     aux1(3) = ii !Defining the value of the momentum of the leaving electron
-    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
+    aux2(3) = dsqrt( (p_e(ii)**2.d0/2.d0 - (e_ip - ip2))**2.d0)
+    aux3(3) = p_e(ii)
   end if
 end do
 
-!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
+!It rests to do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
 pic(1,:) = coef0(aux1(1),:)
 pic(2,:) = coef1(aux1(2),:)
 pic(3,:) = coef2(aux1(3),:)
+pic(1,:) = pic(1,:)*dsqrt(aux3(1)) !Here I include the multiplication by the electron density (that is just its momentum)
+pic(2,:) = pic(2,:)*dsqrt(aux3(2)) !Here I include the multiplication by the electron density (that is just its momentum)
+pic(3,:) = pic(3,:)*dsqrt(aux3(3)) !Here I include the multiplication by the electron density (that is just its momentum)
 close(unit=file1)
 close(unit=file2)
 close(unit=file3)
 close(unit=file4)
-end subroutine p_i_a
-!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!subroutine generate_random_orientation
-!implicit none
-!integer :: n
-!real(kind=dp),allocatable :: temp_m(:,:)
-!n = nsamples/8
-!allocate(temp_m(n,3))
-!call random_number(temp_m)
-!do i = 1,n
-!  temp_m(i,:) = temp_m(i,:) / norm2(temp_m(i,:)) * sqrt(3.d0)
-!end do
-!orie(1:n,:) = temp_m(:,:)
-!do i = 1,n
-!  orie(i+n,:) = rotz( temp_m(i,:), 90.d0*pi/180.d0 )
-!end do
-!do i = 1,2*n
-!  orie(i+n*2,:) = rotz( orie(i,:),180.d0*pi/180.d0 )
-!end do
-!do i = 1,4*n
-!  orie(i+n*4,:) = - orie(i,:)
+
+!!define the correct i, the correct momentum of the electron
+!aux2 = e_ip
+!do ii=1,nk
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0) < aux2(1) ) then
+!    aux1(1) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(1) = dsqrt( (p_e(ii) - (e_ip - ip0))**2.d0)
+!  end if
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0) < aux2(2) ) then
+!    aux1(2) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(2) = dsqrt( (p_e(ii) - (e_ip - ip1))**2.d0)
+!  end if
+!  if ( dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0) < aux2(3) ) then
+!    aux1(3) = ii !Defining the value of the momentum of the leaving electron
+!    aux2(3) = dsqrt( (p_e(ii) - (e_ip - ip2))**2.d0)
+!  end if
 !end do
 !
-!end subroutine generate_random_orientation
-!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!!Do the operation -e * sqrt(2) * E * int(PICE(k) * domega)   --- 'e' is the electron charge, that in atomic units is 1
+!pic(1,:) = coef0(aux1(1),:)
+!pic(2,:) = coef1(aux1(2),:)
+!pic(3,:) = coef2(aux1(3),:)
+!close(unit=file1)
+!close(unit=file2)
+!close(unit=file3)
+!close(unit=file4)
+end subroutine p_i_a
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+subroutine generate_random_orientation
+implicit none
+integer :: n
+real(kind=dp),allocatable :: temp_m(:,:)
+n = nsamples/8
+allocate(temp_m(n,3))
+call random_number(temp_m)
+do i = 1,n
+  temp_m(i,:) = temp_m(i,:) / norm2(temp_m(i,:)) * sqrt(3.d0)
+end do
+orie(1:n,:) = temp_m(:,:)
+do i = 1,n
+  orie(i+n,:) = rotz( temp_m(i,:), 90.d0*pi/180.d0 )
+end do
+do i = 1,2*n
+  orie(i+n*2,:) = rotz( orie(i,:),180.d0*pi/180.d0 )
+end do
+do i = 1,4*n
+  orie(i+n*4,:) = - orie(i,:)
+end do
+
+end subroutine generate_random_orientation
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function rotz(vec,ang)
 !this subroutine takes a vector components x,y and z and rotates by an angle ang around the Z axis, returning the rotated vector
 implicit none
@@ -402,64 +437,56 @@ rotz(:) = matmul(matrix,vec)
 
 return
 end function rotz
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-subroutine generate_random_orientation
-real(kind=dp) :: x,w,z,ang,u(3),rot,matrix(3,3),matrix2(3,3),eye(3,3),rotmatrix(3,3),normfactor
-call random_number(z)
-z = z * (1.d0 - dcos(coneAng)) + dcos(coneAng)
-call random_number(ang)
-ang = ang * 2.d0 * pi
-x = dsqrt(1.d0 - z**2.d0) * dcos(ang)
-w = dsqrt(1.d0 - z**2.d0) * dsin(ang) !The y component
-!rotating x, w and z to be around each bond
-u = [-1.d0 * orie(1,2), 1.d0 * orie(1,1), 0.d0 ]/norm2(orie(1,:)) !Cross product between [0,0,1] and orie
-!normfactor = dsqrt( u(1)**2.d0 + u(2)**2.d0 + u(3)**2.d0 )
-u = u / norm2(u)
-if (u(1) /= u(1) .and. u(2) /= u(2) .and. u(3) /= u(3)) then
-  u = [0.d0, 0.d0, 0.d0]
-end if
-rot = acos( dot_product(orie(1,:)/norm2(orie(1,:)),[0,0,1]) )
-matrix(1,1) = 0.d0
-matrix(1,2) =-u(3)
-matrix(1,3) = u(2)
-matrix(2,1) = u(3)
-matrix(2,2) = 0.d0
-matrix(2,3) =-u(1)
-matrix(3,1) =-u(2)
-matrix(3,2) = u(1)
-matrix(3,3) = 0.d0
-
-matrix2(1,1) = u(1)*u(1)
-matrix2(1,2) = u(1)*u(2)
-matrix2(1,3) = u(1)*u(3)
-matrix2(2,1) = u(2)*u(1)
-matrix2(2,2) = u(2)*u(2)
-matrix2(2,3) = u(2)*u(3)
-matrix2(3,1) = u(3)*u(1)
-matrix2(3,2) = u(3)*u(2)
-matrix2(3,3) = u(3)*u(3)
-
-eye(1,1) = 1.d0
-eye(1,2) = 0.d0
-eye(1,3) = 0.d0
-eye(2,1) = 0.d0
-eye(2,2) = 1.d0
-eye(2,3) = 0.d0
-eye(3,1) = 0.d0
-eye(3,2) = 0.d0
-eye(3,3) = 1.d0
-
-rotmatrix(:,:) = dcos(rot) * eye(:,:) + dsin(rot) * matrix + ( 1.d0 - dcos(rot) ) * matrix2
-
-orientation(1) = rotmatrix(1,1)*x + rotmatrix(1,2)*w + rotmatrix(1,3)*z
-orientation(2) = rotmatrix(2,1)*x + rotmatrix(2,2)*w + rotmatrix(2,3)*z
-orientation(3) = rotmatrix(3,1)*x + rotmatrix(3,2)*w + rotmatrix(3,3)*z
-
-!write(*,'(3f7.4)')orie(1,:)
-!write(*,'(3f7.4)')u
-!write(*,'(3f7.4)')orientation
-!read(*,*)
-
-end subroutine generate_random_orientation
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!subroutine generate_random_orientation
+!real(kind=dp) :: x,w,z,ang,u(3),rot,matrix(3,3),matrix2(3,3),eye(3,3),rotmatrix(3,3),normfactor
+!call random_number(z)
+!z = z * (1.d0 - dcos(coneAng)) + dcos(coneAng)
+!call random_number(ang)
+!ang = ang * 2.d0 * pi
+!x = dsqrt(1.d0 - z**2.d0) * dcos(ang)
+!w = dsqrt(1.d0 - z**2.d0) * dsin(ang) !The y component
+!!rotating x, w and z to be around each bond
+!u = [-1.d0 * orie(2), 1.d0 * orie(1), 0.d0 ]/norm2(orie) !Cross product between [0,0,1] and orie
+!!normfactor = dsqrt( u(1)**2.d0 + u(2)**2.d0 + u(3)**2.d0 )
+!u = u / norm2(u)
+!rot = acos( dot_product(orie/norm2(orie),[0,0,1]) )
+!matrix(1,1) = 0.d0
+!matrix(1,2) =-u(3)
+!matrix(1,3) = u(2)
+!matrix(2,1) = u(3)
+!matrix(2,2) = 0.d0
+!matrix(2,3) =-u(1)
+!matrix(3,1) =-u(2)
+!matrix(3,2) = u(1)
+!matrix(3,3) = 0.d0
+!
+!matrix2(1,1) = u(1)*u(1)
+!matrix2(1,2) = u(1)*u(2)
+!matrix2(1,3) = u(1)*u(3)
+!matrix2(2,1) = u(2)*u(1)
+!matrix2(2,2) = u(2)*u(2)
+!matrix2(2,3) = u(2)*u(3)
+!matrix2(3,1) = u(3)*u(1)
+!matrix2(3,2) = u(3)*u(2)
+!matrix2(3,3) = u(3)*u(3)
+!
+!eye(1,1) = 1.d0
+!eye(1,2) = 0.d0
+!eye(1,3) = 0.d0
+!eye(2,1) = 0.d0
+!eye(2,2) = 1.d0
+!eye(2,3) = 0.d0
+!eye(3,1) = 0.d0
+!eye(3,2) = 0.d0
+!eye(3,3) = 1.d0
+!
+!rotmatrix(:,:) = dcos(rot) * eye(:,:) + dsin(rot) * matrix + ( 1.d0 - dcos(rot) ) * matrix2
+!
+!orientation(1) = rotmatrix(1,1)*x + rotmatrix(1,2)*w + rotmatrix(1,3)*z
+!orientation(2) = rotmatrix(2,1)*x + rotmatrix(2,2)*w + rotmatrix(2,3)*z
+!orientation(3) = rotmatrix(3,1)*x + rotmatrix(3,2)*w + rotmatrix(3,3)*z
+!
+!end subroutine generate_random_orientation
+!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end module global_param

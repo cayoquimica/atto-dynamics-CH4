@@ -541,6 +541,45 @@ do i=0,Nst*Nq1*Nq2-1
   end do
 end do
 !$OMP END PARALLEL DO
+
+!Creating the CSR vectors --------------------------------------------------------------------------------------------------!
+!This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
+k=0                                                                                                                         !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ham(i,j) /= 0.d0) then                                                                                              !
+      k=k+1                                                                                                                 !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+end do                                                                                                                      !
+k_Ha2=k                                                                                                                     !
+write(*,*)'k_Ha (only NAC) = ',k_Ha2                                                                                        !
+allocate(Ha2_val(0:k-1),Ha2_rowc(0:n),Ha2_row_col(0:k-1,0:1))                                                               !
+!                                                                                                                           !
+Ha2_rowc=0.d0                                                                                                               !
+k=0                                                                                                                         !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ham(i,j) /= 0.d0) then                                                                                              !
+      Ha2_val(k)=ham(i,j)  !storing each non-zero element                                                                   !
+      Ha2_row_col(k,0)=i !storing the row index of each non-zero element                                                    !
+      Ha2_row_col(k,1)=j !storing the column index of each non-zero element                                                 !
+      k=k+1                                                                                                                 !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+  Ha2_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    ! 
+end do                                                                                                                      !
+!---------------------------------------------------------------------------------------------------------------------------!
+open(unit=20,file='csr_vectors_only_NAC',status='unknown')
+write(20,'(i12)')k_Ha2
+do i=0,k_Ha2-1
+  write(20,'(e23.15e3,2i12)')Ha2_val(i),Ha2_row_col(i,0),Ha2_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')Ha2_rowc(i)
+end do
+close(unit=20)
+
 deallocate(ham)
 write(*,*)'NAC included'
 end subroutine nac_ha_modify

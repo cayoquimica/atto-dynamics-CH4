@@ -9,7 +9,7 @@ use global_param
 use omp_lib
 implicit none
 external                     :: rkdumb,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
-integer                      :: init_wf,ppp,gg
+integer                      :: init_wf,ppp
 integer                      :: cont,n,jj,ii !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
 real(kind=dp),allocatable    :: wfinal(:,:)!pice(:),nwf0(:)
 real(kind=dp)                :: q10,q20 ! point along q1 and q2 where the minimum global C2v is
@@ -74,6 +74,20 @@ end do
 do i=0,n
   read(20,'(i12)')am_rowc(i)
 end do
+
+close(unit=20)
+
+open(unit=20,file='csr_vectors_only_NAC',status='unknown')
+read(20,'(i12)')k_Ha2
+allocate(Ha2_val(0:k_Ha2-1),Ha2_rowc(0:n), Ha2_row_col(0:k_Ha2-1,0:1))
+do i=0,k_Ha2-1
+  read(20,'(e23.15e3,2i12)')Ha2_val(i),Ha2_row_col(i,0),Ha2_row_col(i,1)
+end do
+do i=0,n
+  read(20,'(i12)')Ha2_rowc(i)
+end do
+close(unit=20)
+
 write(100,'(a)')'PARAMETERS OF THE DYNAMICS'
 write(100,'(a50,i)')'Number of states =',Nst
 write(100,'(a50,i)')'Number of points in coordinate 1 =',Nq1
@@ -116,37 +130,44 @@ end do
 write(100,'(a)')'Photoelecton coupling elements loaded'
 write(100,'(a)')'Initiating dynamics'
 allocate ( wfout(0:n-1,0:nfiles),wfinal(0:n-1,0:nfiles) )
+allocate ( y_f(0:n-1,0:npoints) )
 allocate( coh(0:n-1,0:nfiles),cohe(0:n-1,0:nfiles) )
 wfinal = 0.d0
+y_f = dcmplx(0.d0,0.d0)
 cohe = dcmplx(0.d0,0.d0)
 allocate( orie(nsamples,3) )
-
 call generate_random_orientation
-
 open(unit=44,file='orientations',status='unknown')
+!CALL init_random_seed()         ! see example of RANDOM_SEED
 fa(:)=0.d0;fb(:)=0.d0;fc(:)=0.d0;fd(:)=0.d0;fe(:)=0.d0;ff(:)=0.d0;fg(:)=0.d0;fh(:)=0.d0;fi(:)=0.d0;fj(:)=0.d0;fk(:)=0.d0
 fl(:)=0.d0;fm(:)=0.d0;fn(:)=0.d0;fo(:)=0.d0
 do ppp = 1,nsamples
-!  if ( ppp <= nsamples/6 ) then
-!    orie(1,:) = [ 1.d0, 0.d0, 0.d0 ]
+!  if ( ppp <= nsamples/4 ) then
+!    orie = [ 1.d0, 1.d0, 1.d0 ]
 !    call generate_random_orientation
-!  elseif ( ppp > nsamples/6 .and. ppp <= nsamples/6*2 ) then
-!    orie(1,:) = [-1.d0, 0.d0, 0.d0 ]
+!    if ( nsamples == 4 ) then 
+!      orientation = [ 1.d0, 1.d0, 1.d0]
+!    end if
+!  elseif ( ppp > nsamples/4 .and. ppp <= nsamples/4*2 ) then
+!    orie = [-1.d0,-1.d0, 1.d0 ]
 !    call generate_random_orientation
-!  elseif ( ppp > nsamples/6*2 .and. ppp <= nsamples/6*3 ) then
-!    orie(1,:) = [ 0.d0, 1.d0, 0.d0 ]
+!    if ( nsamples == 4 ) then 
+!      orientation = [-1.d0,-1.d0, 1.d0]
+!    end if
+!  elseif ( ppp > nsamples/4*2 .and. ppp <= nsamples/4*3 ) then
+!    orie = [ 1.d0,-1.d0,-1.d0 ]
 !    call generate_random_orientation
-!  elseif ( ppp > nsamples/6*3 .and. ppp <= nsamples/6*4 ) then
-!    orie(1,:) = [ 0.d0,-1.d0, 0.d0 ]
-!    call generate_random_orientation
-!  elseif ( ppp > nsamples/6*4 .and. ppp <= nsamples/6*5 ) then
-!    orie(1,:) = [ 0.d0, 0.d0, 1.d0 ]
-!    call generate_random_orientation
+!    if ( nsamples == 4 ) then 
+!      orientation = [ 1.d0,-1.d0,-1.d0]
+!    end if
 !  elseif (nsamples == 1 ) then
 !    orientation = [ 1.d0, 1.d0, 1.d0]
 !  else
-!    orie(1,:) = [ 0.d0, 0.d0,-1.d0 ]
+!    orie = [-1.d0, 1.d0,-1.d0 ]
 !    call generate_random_orientation
+!    if ( nsamples == 4 ) then 
+!      orientation = [-1.d0, 1.d0,-1.d0]
+!    end if
 !  end if
   if (nsamples == 4 ) then
     if ( ppp == 1 ) then
@@ -158,25 +179,12 @@ do ppp = 1,nsamples
     else
       orientation = [-1.d0, 1.d0,-1.d0]
     end if
-  elseif (nsamples == 6 ) then
-    if ( ppp == 1 ) then
-      orientation = [ 1.d0, 0.d0, 0.d0]
-    elseif ( ppp == 2 ) then
-      orientation = [-1.d0, 0.d0, 0.d0]
-    elseif ( ppp == 3 ) then
-      orientation = [ 0.d0, 1.d0, 0.d0]
-    elseif ( ppp == 4 ) then
-      orientation = [ 0.d0,-1.d0, 0.d0]
-    elseif ( ppp == 5 ) then
-      orientation = [ 0.d0, 0.d0, 1.d0]
-    else
-      orientation = [ 0.d0, 0.d0,-1.d0]
-    end if
   else
     orientation = orie(ppp,:)
   end if
-
+  
   write(44,'(3f15.7)') orientation
+
   call generate_initial_wf
   wfout(:,0) = wf0(:)
   do i = 0,s-1
@@ -239,14 +247,7 @@ fl(:) = fl(:) / nsamples
 fm(:) = fm(:) / nsamples 
 fn(:) = fn(:) / nsamples 
 fo(:) = fo(:) / nsamples 
-!if ( all(wfinal(:,0) == 0.d0) ) then
-!  write(100,*)'Error in wfout. It is all zeros '
-!  read(*,*)
-!endif
-!write(*,*)'tudo certo até aqui'
-!read(*,*)
 
-!WRITE THE FINAL RESULTS!!!!!
 open(unit=15,file='alldata.data',status='unknown')
 
 write(15,'(a3,3(e26.14e3))')'# ',fd(0),fe(0),ff(0)
@@ -257,28 +258,30 @@ write(100,'(a)') '   time  ,   Pulse   ,     E1    ,    E2     ,    E3     ,   E
 , NormT-1   ,   Ltot    '
 
 t = t0
-ii = 0; gg = 0!1
+ii = 0; ll = 0!1
 do ll=1,nfiles ! for saving 1000 time samples
-  gg = gg + 1
   do k=1,(npoints/nfiles)
     ii = ii + 1
     t = t + tstep
   end do
+  fname='diff-pop-000000.h5'
+  write(fname(10:15),'(i0.6)') ll
+  call save_vector_h5(y_f(:,ii-1),n,fname,18) ! saving the difference of the pop between 2 points in time to see pop transfer in the grid
   fname='time-pop-000000.h5'
   write(fname(10:15),'(i0.6)') ll
-  call save_vector_h5(wfinal(:,gg-1),n,fname,18)
+  call save_vector_h5(wfinal(:,ll-1),n,fname,18)
   fname='real-coh-000000.h5'
   write(fname(10:15),'(i0.6)') ll
-  call save_vector_h5(real(cohe(:,gg-1)),n,fname,18)
+  call save_vector_h5(real(cohe(:,ll-1)),n,fname,18)
   fname='imag-coh-000000.h5'
   write(fname(10:15),'(i0.6)') ll
-  call save_vector_h5(aimag(cohe(:,gg-1)),n,fname,18)
+  call save_vector_h5(aimag(cohe(:,ll-1)),n,fname,18)
 
   Et = (E00/freq)*(-(t-t00)/sig**2.d0*sin(freq*(t-t00)+phase)+freq*cos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
-  write(15,'(17(es26.16e3))') t-tstep,Et,fa(gg),fb(gg),fc(gg),fd(gg),fe(gg),ff(gg),fg(gg),fh(gg),fi(gg),fj(gg),fk(gg),&
-fl(gg),fm(gg),fn(gg),fo(gg)
-  write(100,'(f9.2,11(e12.3e3))') t,Et,fd(gg),fe(gg),ff(gg),fd(gg)+fe(gg)+ff(gg)-(fd(0)+fe(0)+ff(0)),fa(gg),fb(gg),fc(gg),&
-fa(gg)+fb(gg)+fc(gg)-1.d0,fg(gg)+fh(gg)+fi(gg)
+  write(15,'(17(es26.16e3))') t-tstep,Et,fa(ll),fb(ll),fc(ll),fd(ll),fe(ll),ff(ll),fg(ll),fh(ll),fi(ll),fj(ll),fk(ll),&
+fl(ll),fm(ll),fn(ll),fo(ll)
+  write(100,'(f9.2,11(e12.3e3))') t,Et,fd(ll),fe(ll),ff(ll),fd(ll)+fe(ll)+ff(ll)-(fd(0)+fe(0)+ff(0)),fa(ll),fb(ll),fc(ll),&
+fa(ll)+fb(ll)+fc(ll)-1.d0,fg(ll)+fh(ll)+fi(ll)
 end do
 write(100,'(a30,(e12.3e3))')'Norm conservation =',( fa(0)+fb(0)+fc(0) )-( fa(nfiles) + fb(nfiles) + fc(nfiles) )
 write(100,'(a30,(e12.3e3))')'Final norm for state 1 =',fa(nfiles)
@@ -307,9 +310,10 @@ end program
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !subroutine rkdumb(y0,n,t0,tf,npoints,h,HA_calc)
 subroutine rkdumb(y,n,HA_calc)
+use omp_lib
 use global_param
 external rk4,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
-integer           :: n,ii,gg
+integer           :: n,ii
 real(kind=dp)     :: tt(npoints),h,t!,coordinate1(s),coordinate2(s)
 complex(kind=dp)  :: dydt(0:n-1),y(0:n-1)!,y0(n)!,ymatrix(n,npoints+1)!,ymatlab(n,npoints)
 !real(kind=dp)     :: Te1,Te2,Te3!,enert(npoints+1) ! This is fo saving total energy through time
@@ -358,61 +362,65 @@ end do                                                      !
 !-----------------------------------------------------------!
 !write(100,*)e1(0),e2(0),e3(0),sum1(0),sum2(0),sum3(0)
 !read(*,*)
-ii=0;gg=0!1
+ii=0;
 do ll=1,nfiles ! for saving 1000 time samples
-  gg=gg+1
   do k=1,(npoints/nfiles)
-    ii=ii+1
+    ii = ii+1
     call HA_calc(t,y,n,dydt) ! evaluating y'(t,y)
     call rk4(y,dydt,n,t,h,y,HA_calc) !evaluating y(t+h)
+    !$OMP parallel do shared(y_f,y_nac)
+    do i = 0,Nst*s-1
+      y_f(i,ii) = y_f(i,ii) + ( dconjg(y_nac(i)) * y_nac(i) )/nsamples
+    end do
+    !$OMP end parallel do
     t=t+h
   end do
-  wfout(:,gg) = y(:)
+  wfout(:,ll) = y(:)
   do i = 0,s-1
-    coh(i,gg)     = dconjg(y(i))   * y(i+s)
-    coh(i+s,gg)   = dconjg(y(i))   * y(i+2*s)
-    coh(i+2*s,gg) = dconjg(y(i+s)) * y(i+2*s)
+    coh(i,ll)     = dconjg(y(i))   * y(i+s)
+    coh(i+s,ll)   = dconjg(y(i))   * y(i+2*s)
+    coh(i+2*s,ll) = dconjg(y(i+s)) * y(i+2*s)
   end do
   !------------------------------------------------------------!
   !Checking momentum and saving norm                           !
   call momentum_calc_q1(y,momq1,n) ! evaluating dydq           !
   call momentum_calc_q2(y,momq2,n) ! evaluating dydq           !
   call angular_momentum(y,n,am)                                !
-  pq1_1(gg)=0.0d0 ! momentum in q1 state1                      !
-  pq2_1(gg)=0.0d0 ! momentum in q2 state1                      !
-  pq1_2(gg)=0.0d0 ! momentum in q1 state2                      !
-  pq2_2(gg)=0.0d0 ! momentum in q2 state2                      !
-  pq1_3(gg)=0.0d0 ! momentum in q1 state3                      !
-  pq2_3(gg)=0.0d0 ! momentum in q2 state3                      !
-  sum1(gg)=0.0d0  ! norm for state 1                           !
-  sum2(gg)=0.0d0  ! norm for state 2                           !
-  sum3(gg)=0.0d0  ! norm for state 3                           !
-  e1(gg)=0.d0     ! energy of state 1                          !
-  e2(gg)=0.d0     ! energy of state 2                          !
-  e3(gg)=0.d0     ! energy of state 3                          !
-  L1(gg)=0.d0     ! angular momentum of state 1                !
-  L2(gg)=0.d0     ! angular momentum of state 2                !
-  L3(gg)=0.d0     ! angular momentum of state 3                !
+  pq1_1(ll)=0.0d0 ! momentum in q1 state1                      !
+  pq2_1(ll)=0.0d0 ! momentum in q2 state1                      !
+  pq1_2(ll)=0.0d0 ! momentum in q1 state2                      !
+  pq2_2(ll)=0.0d0 ! momentum in q2 state2                      !
+  pq1_3(ll)=0.0d0 ! momentum in q1 state3                      !
+  pq2_3(ll)=0.0d0 ! momentum in q2 state3                      !
+  sum1(ll)=0.0d0  ! norm for state 1                           !
+  sum2(ll)=0.0d0  ! norm for state 2                           !
+  sum3(ll)=0.0d0  ! norm for state 3                           !
+  e1(ll)=0.d0     ! energy of state 1                          !
+  e2(ll)=0.d0     ! energy of state 2                          !
+  e3(ll)=0.d0     ! energy of state 3                          !
+  L1(ll)=0.d0     ! angular momentum of state 1                !
+  L2(ll)=0.d0     ! angular momentum of state 2                !
+  L3(ll)=0.d0     ! angular momentum of state 3                !
   do i=0,s-1                                                   !
-    pq1_1(gg) = pq1_1(gg) + dconjg(y(i))     * momq1(i)        !
-    pq2_1(gg) = pq2_1(gg) + dconjg(y(i))     * momq2(i)        !
-    pq1_2(gg) = pq1_2(gg) + dconjg(y(i+s))   * momq1(i+s)      !
-    pq2_2(gg) = pq2_2(gg) + dconjg(y(i+s))   * momq2(i+s)      !
-    pq1_3(gg) = pq1_3(gg) + dconjg(y(i+2*s)) * momq1(i+2*s)    !
-    pq2_3(gg) = pq2_3(gg) + dconjg(y(i+2*s)) * momq2(i+2*s)    !
-    sum1(gg)  = sum1(gg)  + dconjg(y(i))     * y(i)            !
-    sum2(gg)  = sum2(gg)  + dconjg(y(i+s))   * y(i+s)          !
-    sum3(gg)  = sum3(gg)  + dconjg(y(i+2*s)) * y(i+2*s)        !
-    e1(gg)    = e1(gg)    + dconjg(y(i))     * dydt(i)*im      !
-    e2(gg)    = e2(gg)    + dconjg(y(i+s))   * dydt(i+s)*im    !
-    e3(gg)    = e3(gg)    + dconjg(y(i+2*s)) * dydt(i+2*s)*im  !
-    L1(gg)    = L1(gg)    + dconjg(y(i))     * am(i)           !
-    L2(gg)    = L2(gg)    + dconjg(y(i+s))   * am(i+s)         !
-    L3(gg)    = L3(gg)    + dconjg(y(i+2*s)) * am(i+2*s)       !
+    pq1_1(ll) = pq1_1(ll) + dconjg(y(i))     * momq1(i)        !
+    pq2_1(ll) = pq2_1(ll) + dconjg(y(i))     * momq2(i)        !
+    pq1_2(ll) = pq1_2(ll) + dconjg(y(i+s))   * momq1(i+s)      !
+    pq2_2(ll) = pq2_2(ll) + dconjg(y(i+s))   * momq2(i+s)      !
+    pq1_3(ll) = pq1_3(ll) + dconjg(y(i+2*s)) * momq1(i+2*s)    !
+    pq2_3(ll) = pq2_3(ll) + dconjg(y(i+2*s)) * momq2(i+2*s)    !
+    sum1(ll)  = sum1(ll)  + dconjg(y(i))     * y(i)            !
+    sum2(ll)  = sum2(ll)  + dconjg(y(i+s))   * y(i+s)          !
+    sum3(ll)  = sum3(ll)  + dconjg(y(i+2*s)) * y(i+2*s)        !
+    e1(ll)    = e1(ll)    + dconjg(y(i))     * dydt(i)*im      !
+    e2(ll)    = e2(ll)    + dconjg(y(i+s))   * dydt(i+s)*im    !
+    e3(ll)    = e3(ll)    + dconjg(y(i+2*s)) * dydt(i+2*s)*im  !
+    L1(ll)    = L1(ll)    + dconjg(y(i))     * am(i)           !
+    L2(ll)    = L2(ll)    + dconjg(y(i+s))   * am(i+s)         !
+    L3(ll)    = L3(ll)    + dconjg(y(i+2*s)) * am(i+2*s)       !
   end do                                                       !
   !------------------------------------------------------------!
-  momq1t(gg)=pq1_1(gg)+pq1_2(gg)+pq1_3(gg)
-  momq2t(gg)=pq2_1(gg)+pq2_2(gg)+pq2_3(gg)
+  momq1t(ll)=pq1_1(ll)+pq1_2(ll)+pq1_3(ll)
+  momq2t(ll)=pq2_1(ll)+pq2_2(ll)+pq2_3(ll)
 end do
 end subroutine rkdumb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -468,10 +476,20 @@ complex(kind=dp) :: y(0:n-1),dydt(0:n-1)
 
 Et = (E00/freq)*(-(t-t00)/sig**2.d0*dsin(freq*(t-t00)+phase)+freq*dcos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
 dydt=dcmplx(0.d0,0.d0)
-!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et)
+y_nac=dcmplx(0.d0,0.d0)
+!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et,y_nac,Ha2_val,Ha2_row_col)
 do i=0,n-1
   do j=Ha_rowc(i),Ha_rowc(i+1)-1
     dydt(i) = dydt(i) + ( Ha_val(j) + (dot_product(orientation,dip_val(j,:)) * Et) ) * y(Ha_row_col(j,1)) / im
+!    y_nac(i) = y_nac(i) + Ha2_val(j) * y(Ha2_row_col(j,1)) / im
+  end do
+end do
+!$OMP end parallel do
+!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et,y_nac,Ha2_val,Ha2_row_col)
+do i=0,n-1
+  do j=Ha2_rowc(i),Ha2_rowc(i+1)-1
+!    dydt(i) = dydt(i) + ( Ha_val(j) + (dot_product(orientation,dip_val(j,:)) * Et) ) * y(Ha_row_col(j,1)) / im
+    y_nac(i) = y_nac(i) + Ha2_val(j) * y(Ha2_row_col(j,1)) / im
   end do
 end do
 !$OMP end parallel do
@@ -642,3 +660,21 @@ end do
 !$OMP end parallel do
 end subroutine angular_momentum
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+subroutine progress_bar(jjjj,ffff)
+implicit none
+integer(kind=4)::jjjj,kkkk,ffff
+character(len=30)::bar="?????% |                    | "
+write(bar(1:5),'(f5.1)') 100.d0/real(ffff)*jjjj
+do kkkk=1, int(real(jjjj)/real(ffff)*20.d0)
+  bar(8+kkkk:8+kkkk)="*"
+enddo
+! print the progress bar.
+write(6,'(a1,a30)',advance="no") char(13), bar
+if (jjjj/=ffff) then
+  flush(6)
+else
+  write(6,*)
+endif
+return
+end subroutine progress_bar

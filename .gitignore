@@ -5,7 +5,7 @@
 *.dat
 *.h5
 eigen-vec-neutral*
-csr_vectors
+csr_vectors*
 wfINIT*
 output
 slurm*
