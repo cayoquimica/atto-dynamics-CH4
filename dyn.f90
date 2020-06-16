@@ -186,6 +186,7 @@ do ppp = 1,nsamples
   write(44,'(3f15.7)') orientation
 
   call generate_initial_wf
+
   wfout(:,0) = wf0(:)
   do i = 0,s-1
     coh(i,0)     = dconjg(wf0(i))   * wf0(i+s)
@@ -198,7 +199,7 @@ do ppp = 1,nsamples
   fname='iniWF-i-ori0000.h5'
   write(fname(12:15),'(i0.4)') ppp 
   call save_vector_h5(aimag(wf0),n,fname,18)
-  
+
   call rkdumb(wf0,n,HA_calc)
   maxmomq1(ppp) = maxval(momq1t)
   maxmomq2(ppp) = maxval(momq2t)
@@ -228,6 +229,7 @@ do ppp = 1,nsamples
   fm(:) = fm(:) + pq2_2(:)
   fn(:) = fn(:) + pq1_3(:)
   fo(:) = fo(:) + pq2_3(:)
+
 write(100,'(a10,f7.2,a2)')'Progress: ',real(real(ppp)/real(nsamples)*100),' %'
 end do
 wfinal(:,:) = wfinal(:,:) / nsamples
@@ -315,7 +317,7 @@ use global_param
 external rk4,HA_calc,momentum_calc_q1,momentum_calc_q2,angular_momentum
 integer           :: n,ii
 real(kind=dp)     :: tt(npoints),h,t!,coordinate1(s),coordinate2(s)
-complex(kind=dp)  :: dydt(0:n-1),y(0:n-1)!,y0(n)!,ymatrix(n,npoints+1)!,ymatlab(n,npoints)
+complex(kind=dp)  :: dydt(0:n-1),y(0:n-1),dydt_nac(0:n-1)!,y0(n)!,ymatrix(n,npoints+1)!,ymatlab(n,npoints)
 !real(kind=dp)     :: Te1,Te2,Te3!,enert(npoints+1) ! This is fo saving total energy through time
 complex(kind=dp)  :: momq1(0:n-1),momq2(0:n-1),am(0:n-1) ! This is for saving momentum through time
 
@@ -323,7 +325,7 @@ h = tstep
 t = t0
 !-----------------------------------------------------------!
 !Checking momentum and saving norm                          !
-call HA_calc(t,y,n,dydt,h) ! evaluating y'(t,y)             !
+call HA_calc(t,y,n,dydt,dydt_nac,y_nac) ! evaluating y'(t,y)             !
 call momentum_calc_q1(y,momq1,n) ! evaluating dydq          !
 call momentum_calc_q2(y,momq2,n) ! evaluating dydq          !
 call angular_momentum(y,n,am)                               !
@@ -367,10 +369,11 @@ do ll=1,nfiles ! for saving 1000 time samples
   do k=1,(npoints/nfiles)
     ii = ii+1
     call HA_calc(t,y,n,dydt) ! evaluating y'(t,y)
+    call HA_calc_nac_only(n,dydt_nac,y) ! evaluating NAC influence only
     call rk4(y,dydt,n,t,h,y,HA_calc) !evaluating y(t+h)
-    !$OMP parallel do shared(y_f,y_nac)
+    !$OMP parallel do shared(y_f)
     do i = 0,Nst*s-1
-      y_f(i,ii) = y_f(i,ii) + ( dconjg(y_nac(i)) * y_nac(i) )/nsamples
+      y_f(i,ii) = y_f(i,ii) + ( dconjg(dydt_nac(i)) * dydt_nac(i) )/nsamples
     end do
     !$OMP end parallel do
     t=t+h
@@ -426,6 +429,7 @@ end subroutine rkdumb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine rk4(y0,dydt,n,t,h,Yout,HA_calc)
 use global_param
+use omp_lib
 implicit none
 integer n
 real(kind=dp) :: t,h,th
@@ -441,22 +445,31 @@ external HA_calc
 !y(t+1) = y(t) + 1/6 (k1+ 2*k2 + 2*k3 + k4)
 th=t+h/2.d0
 !dydt = y'(t , y(t)) = k1/h ---- dydt MUST NOT BE PREVIOUSLY MULTIPLIED BY h ----
+!$OMP parallel do shared(yt)
 do1: do i=0,n-1
   yt(i) = y0(i) + (h/2.d0) * dydt(i) !Evaluation of y(t) + k1/2.0d0
 end do do1
-call HA_calc(th,yt,n,dyt,h/2.d0) !dyt = k2/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k1/2.0d0)
+!$OMP end parallel do
+call HA_calc(th,yt,n,dyt) !dyt = k2/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k1/2.0d0)
+!$OMP parallel do shared(yt)
 do2: do i=0,n-1
   yt(i) = y0(i) + (h/2.d0) * dyt(i)  !Evaluation of y(t) + k2/2.0d0
 end do do2
-call HA_calc(th,yt,n,dym,h/2.d0) !dym = k3/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k2/2.0d0)
+!$OMP end parallel do
+call HA_calc(th,yt,n,dym) !dym = k3/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k2/2.0d0)
+!$OMP parallel do shared(yt,dym)
 do3: do i=0,n-1
   yt(i) = y0(i) + h * dym(i) !Evaluation of y(t) + k3
   dym(i) = dyt(i) + dym(i)  ! making dym = (k2 + k3)/h ---- variable dyt free now
 end do do3
-call HA_calc(t+h,yt,n,dyt,h*2.d0) !dyt = k4/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k1/2.0d0)
+!$OMP end parallel do
+call HA_calc(t+h,yt,n,dyt) !dyt = k4/h ---- Evaluation of y'(t + h/2.0d0 , y(t) + k1/2.0d0)
+!$OMP parallel do shared(Yout)
 do4: do i=0,n-1
   Yout(i) = y0(i) + h/6.d0 * (dydt(i) + 2.d0 * dym(i) + dyt(i))
 end do do4
+!$OMP end parallel do
+
 end subroutine rk4
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 !Subroutine computes the derivatives dPsi(t)/dt = H/i Psi
@@ -474,39 +487,46 @@ complex(kind=dp) :: y(0:n-1),dydt(0:n-1)
 !write(*,*) 'omp_get_num_procs = ', omp_get_num_procs ( )
 !write(*,*) 'Time = ', omp_get_wtime ( )
 
+! Evaluating the external electric field at a given time
 Et = (E00/freq)*(-(t-t00)/sig**2.d0*dsin(freq*(t-t00)+phase)+freq*dcos(freq*(t-t00)+phase))*dexp(-(t-t00)**2.d0/(2.d0*sig**2.d0))
 dydt=dcmplx(0.d0,0.d0)
-y_nac=dcmplx(0.d0,0.d0)
-!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et,y_nac,Ha2_val,Ha2_row_col)
+!$OMP PARALLEL DO shared(dydt)
 do i=0,n-1
-  do j=Ha_rowc(i),Ha_rowc(i+1)-1
-    dydt(i) = dydt(i) + ( Ha_val(j) + (dot_product(orientation,dip_val(j,:)) * Et) ) * y(Ha_row_col(j,1)) / im
-!    y_nac(i) = y_nac(i) + Ha2_val(j) * y(Ha2_row_col(j,1)) / im
+  do j=Ha_rowc(i),Ha_rowc(i+1)-1 ! USING CSR VECTORS FOR THE SPARSE HMAILTONIAN MATRIX (CALCULATED IN load_hamiltonian.f90)
+    dydt(i) = dydt(i) + ( Ha_val(j) + (dot_product(orientation,dip_val(j,:)) * Et) ) * y(Ha_row_col(j,1)) / im ! dPsi(t)/dt = H/i Psi
   end do
 end do
 !$OMP end parallel do
-!$OMP PARALLEL DO shared(y,dydt,Ha_val,dip_val,Ha_row_col,Et,y_nac,Ha2_val,Ha2_row_col)
-do i=0,n-1
-  do j=Ha2_rowc(i),Ha2_rowc(i+1)-1
-!    dydt(i) = dydt(i) + ( Ha_val(j) + (dot_product(orientation,dip_val(j,:)) * Et) ) * y(Ha_row_col(j,1)) / im
-    y_nac(i) = y_nac(i) + Ha2_val(j) * y(Ha2_row_col(j,1)) / im
-  end do
-end do
-!$OMP end parallel do
-
-
-!dydt=dcmplx(0.d0,0.d0)
-!!$OMP PARALLEL DO shared(dydt,y,ham,n) 
-!do i=0,n-1
-!!dydt(i) = dot_product(ham(i,1:n),y(1:n))/im
-!  do j=0,n-1
-!    dydt(i) = dydt(i) +  ham(i,j) * y(j)/im
-!  end do
-!end do
-!!$OMP end parallel do
 
 end subroutine HA_calc
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+!Subroutine computes the derivatives dPsi(t)/dt = H/i Psi
+!This derivative routine calculates 
+!Written as a simple matrix multiplication between the Hamiltonian matrix H and the amplitudes vector Psi
+subroutine HA_calc_nac_only(n,dydt_nac,y_nac)
+use global_param
+use omp_lib
+implicit none
+integer n
+complex(kind=dp) :: dydt_nac(0:n-1),y_nac(0:n-1)
+
+!============================== EVALUATION OF THE NAC INFLUENCE ONLY ==============================!      
+dydt_nac=dcmplx(0.d0,0.d0)
+!$OMP PARALLEL DO shared(dydt_nac)
+do i=0,n-1
+  do j=Ha2_rowc(i),Ha2_rowc(i+1)-1
+    dydt_nac(i) = dydt_nac(i) + Ha2_val(j) * y_nac(Ha2_row_col(j,1)) / im
+  end do
+end do
+!$OMP end parallel do
+!============================== EVALUATION OF THE NAC INFLUENCE ONLY ==============================!      
+
+end subroutine HA_calc_nac_only
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 subroutine momentum_calc_q1(y,mom,n)
 use global_param
 use omp_lib

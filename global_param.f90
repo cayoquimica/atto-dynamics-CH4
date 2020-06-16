@@ -43,13 +43,13 @@ real(kind=dp),dimension(:,:),allocatable   :: Ha! Hamiltonian matrix
 real(kind=dp),dimension(:,:,:),allocatable :: ay! Hamiltonian matrix
 real(kind=dp),dimension(:,:),allocatable   :: ham,ax ! Variable to store the Hamiltonian matrix temporary
 real(kind=dp),dimension(:,:),allocatable   :: moq1,moq2! Momentum matrix
-complex(kind=dp)                           :: y_nac(0:Nst*s-1)
 complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:),y_f(:,:)
 real(kind=dp),allocatable                  :: Ha_val(:),dip_val(:,:),am_val(:),moq1_val(:),moq2_val(:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: Ha_rowc(:),Ha_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: moq1_rowc(:),moq1_row_col(:,:),moq2_rowc(:),moq2_row_col(:,:) !CSR vectors for sparse matrix multiplication
 integer,allocatable                        :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
-integer,allocatable                        :: Ha2_val(:),Ha2_rowc(:),Ha2_row_col(:,:)
+integer,allocatable                        :: Ha2_rowc(:),Ha2_row_col(:,:)
+real,allocatable                           :: Ha2_val(:)
 real(kind=dp)                              :: mass1,mass2,mass3 !Reduced masses to be used in the second derivative
 real(kind=dp)                              :: Et !Final electrical field of the pulse
 real(kind=dp),dimension(3)                 :: orientation,u !Orientation of the electric field of the ionizing pulse

@@ -9,6 +9,7 @@ use omp_lib
 implicit none
 integer                      :: n,jj,ii,nana !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
 real(kind=dp)                :: ompt0,ompt1,x1,x2,soma
+integer(kind=dp)             :: lol(0:Nq1*Nq2*Nst-1)
 !integer,parameter            :: q1_initial = 25
 !integer,parameter            :: q1_final = 70
 !integer,parameter            :: q2_initial = 75
@@ -76,21 +77,24 @@ call load_data
 !!$ ompt1 = omp_get_wtime()
 !write(*,*)'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
 
-
 call hamiltonian_matrix
 write(*,*)'Kinetic and potential energy loaded'
 call first_derivative_matrix_q1
 !$ x1 = omp_get_wtime()
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the first derivative with respect of q1                                                                        !
+lol=0.d0
 k=0                                                                                                                         !
+!$OMP parallel do shared(lol)
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (moq1(i,j) /= 0.d0) then                                                                                             !
-      k=k+1                                                                                                                 !
+      lol(i) = lol(i) + 1
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
+!$OMP end parallel do 
+k = sum(lol)
 k_moq1=k                                                                                                                    !
 write(*,*)'k moq1= ',k                                                                                                      !
 allocate(moq1_val(0:k-1),moq1_rowc(0:n), moq1_row_col(0:k-1,0:1))                                                           !
@@ -115,14 +119,18 @@ write(*,*)'Csr vectors for first derivative along q1 created'
 call first_derivative_matrix_q2
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the first derivative with respect of q1                                                                        !
+lol=0.d0
 k=0                                                                                                                         !
+!$OMP parallel do shared(lol)
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (moq2(i,j) /= 0.d0) then                                                                                             !
-      k=k+1                                                                                                                 !
+      lol(i) = lol(i) + 1
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
+!$OMP end parallel do 
+k = sum(lol)
 k_moq2=k                                                                                                                    !
 write(*,*)'k moq2= ',k                                                                                                      !
 allocate(moq2_val(0:k-1),moq2_rowc(0:n), moq2_row_col(0:k-1,0:1))                                                           !
@@ -211,14 +219,18 @@ end do
 !$OMP end parallel do
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
+lol=0.d0
 k=0                                                                                                                         !
+!$OMP parallel do shared(lol)
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
-    if (ham(i,j) /= 0.d0) then                                                                                              !
-      k=k+1                                                                                                                 !
+    if (ham(i,j) /= 0.d0) then                                                                                             !
+      lol(i) = lol(i) + 1
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
+!$OMP end parallel do 
+k = sum(lol)
 k_Ha=k                                                                                                                      !
 k_dip=k                                                                                                                     !
 write(*,*)'k_Ha = ',k_Ha                                                                                                    !
@@ -475,6 +487,12 @@ integer                               :: cont,n
 real(kind=dp), dimension(Nq1,Nq2)     :: nac21q1,nac21q2,nac31q1,nac31q2,nac32q1,nac32q2
 real(kind=dp), dimension(0:Nq1*Nq2-1) :: vec1,vec2,vec3,vec4,vec5,vec6
 
+integer(kind=dp), dimension(0:Nq1*Nq2*Nst-1) :: lol
+real(kind=dp) :: truni,trunf
+
+!$ truni = omp_get_wtime()
+
+
 n=Nst*Nq1*Nq2
 allocate (ham(0:Nst*Nq1*Nq2-1,0:Nst*Nq1*Nq2-1))
 !$OMP parallel do shared(ham)
@@ -521,7 +539,7 @@ do j=0,Nq2-1
     cont=cont+1
   end do
 end do
-!!$OMP PARALLEL DO shared(moq1,moq2,ham,vec1,vec2,vec3,vec4,vec5,vec6)
+!$OMP PARALLEL DO shared(moq1,moq2,ham)
 do i=0,s-1
   do j=0,s-1
     ham(i+0*s,j+1*s)= vec1(i)*moq1(i,j) + vec2(i)*moq2(i,j)
@@ -532,44 +550,67 @@ do i=0,s-1
     ham(j+2*s,i+1*s)= vec5(i)*moq1(i,j) + vec6(i)*moq2(i,j)
   end do
 end do
-!!$OMP end parallel do
+!$OMP end parallel do
 ! Merging this matrix with the one that includes the second derivatives and the potential energy, Ha
-!$OMP PARALLEL DO shared(ha,ham)
-do i=0,Nst*Nq1*Nq2-1
-  do j=0,Nst*Nq1*Nq2-1
-    Ha(i,j)=Ha(i,j)-ham(i,j) ! Minus because of the sign of the kinetic energy term
-  end do
-end do
-!$OMP END PARALLEL DO
+!!$OMP PARALLEL DO shared(ha,ham)
+!do i=0,Nst*Nq1*Nq2-1
+!  do j=0,Nst*Nq1*Nq2-1
+!    Ha(i,j)=Ha(i,j)-ham(i,j) ! Minus because of the sign of the kinetic energy term
+!  end do
+!end do
+!!$OMP END PARALLEL DO
+
+!$ trunf = omp_get_wtime()
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
+!$ truni = omp_get_wtime()
+
+write(*,*)'NAC EVALUATED, STARTING TO CREATE CSR VECTORS'
 
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
 k=0                                                                                                                         !
+lol=0.d0
+!$OMP parallel do shared(lol)
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (ham(i,j) /= 0.d0) then                                                                                              !
-      k=k+1                                                                                                                 !
+      lol(i) = lol(i)+1
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
+!$OMP end parallel do
+k = sum(lol)
 k_Ha2=k                                                                                                                     !
 write(*,*)'k_Ha (only NAC) = ',k_Ha2                                                                                        !
+!$ trunf = omp_get_wtime()
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
+!$ truni = omp_get_wtime()
+
 allocate(Ha2_val(0:k-1),Ha2_rowc(0:n),Ha2_row_col(0:k-1,0:1))                                                               !
+Ha2_val = 1.23456789d0
 !                                                                                                                           !
 Ha2_rowc=0.d0                                                                                                               !
+!$ trunf = omp_get_wtime()
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
+!$ truni = omp_get_wtime()
 k=0                                                                                                                         !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (ham(i,j) /= 0.d0) then                                                                                              !
-      Ha2_val(k)=ham(i,j)  !storing each non-zero element                                                                   !
+      Ha2_val(k) = - ham(i,j)  !storing each non-zero element                                                               !
       Ha2_row_col(k,0)=i !storing the row index of each non-zero element                                                    !
       Ha2_row_col(k,1)=j !storing the column index of each non-zero element                                                 !
+!write(*,*)ham(i,j)
+!read(*,*)
       k=k+1                                                                                                                 !
     end if                                                                                                                  !
   end do                                                                                                                    !
-  Ha2_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    ! 
+  Ha2_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    !
 end do                                                                                                                      !
 !---------------------------------------------------------------------------------------------------------------------------!
+!$ trunf = omp_get_wtime()
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
+!$ truni = omp_get_wtime()
 open(unit=20,file='csr_vectors_only_NAC',status='unknown')
 write(20,'(i12)')k_Ha2
 do i=0,k_Ha2-1
@@ -579,7 +620,11 @@ do i=0,n
   write(20,'(i12)')Ha2_rowc(i)
 end do
 close(unit=20)
+write(*,*)'Parte só do NAC feita'
 
+!$ trunf = omp_get_wtime()
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
+!$ truni = omp_get_wtime()
 deallocate(ham)
 write(*,*)'NAC included'
 end subroutine nac_ha_modify
