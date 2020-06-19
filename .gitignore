@@ -9,3 +9,6 @@ csr_vectors*
 wfINIT*
 output
 slurm*
+orientations*
+all_*
+pop_change_out
