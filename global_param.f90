@@ -1,22 +1,22 @@
 module global_param
 implicit none
 integer, parameter                         :: dp = kind(1.d0) 
-integer                                    :: i,j,k,l,ll,k_Ha,k_dip,k_moq1,k_moq2,k_am,ij,k_Ha2
+integer                                    :: i,j,k,l,ll,ij
 integer, parameter                         :: NA=5 !Number of atoms
 integer, parameter                         :: Nst=3 !number of electronic states
 integer, parameter                         :: Nq1=146 !126 !number of points of the grid along q1
 integer, parameter                         :: Nq2=184 !179 !number of points of the grid along q2
 integer, parameter                         :: s=Nq1*Nq2 !counter to be used as index - means the size of a 1 state matrix, which is Nq1*Nq2
 integer,parameter                          :: q1_initial = 25
-integer,parameter                          :: q1_final = 70
+integer,parameter                          :: q1_final   = 70
 integer,parameter                          :: q2_initial = 75
-integer,parameter                          :: q2_final = 115
-integer,parameter                          :: nsamples = 50*8 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
+integer,parameter                          :: q2_final   = 115
+integer,parameter                          :: nsamples = 100*8 !Number of randon orientations to sample for the photoionization around each bond (the *4 is for each bond)
 integer,parameter                          :: nfiles = 2000 !Number of snapshots in time to save
-integer,parameter                          :: npoints = 50000 !Number of time steps to take in the simulation
+integer,parameter                          :: npoints = 100000 !Number of time steps to take in the simulation
 complex(kind=dp), parameter                :: im=dcmplx(0.d0,1.d0) !imaginary unity
 real(kind=dp),parameter                    :: t0 = 0.d0 !Initial time
-real(kind=dp),parameter                    :: tf = 500.d0 !Final time
+real(kind=dp),parameter                    :: tf = 1000.d0 !Final time
 real(kind=dp),parameter                    :: tstep = (tf-t0)/npoints !Time step
 real(kind=dp),parameter                    :: pi = 3.141592653589793d0
 !real(kind=dp),parameter                    :: coneAng = 10.d0 * pi / 180.d0 !Angle around each bond to sample ramdonly for initial photoionizations
@@ -31,7 +31,7 @@ real(kind=dp),parameter                    :: phase = 0.d0 !phase factor for the
 real(kind=dp),parameter                    :: freq =0.056937d0 !0.512285550500502 is the ionizating pulse !0.056937d0 !frequency of the pulse, in a.u. - 800 nm of wavelength
 real(kind=dp),parameter                    :: sig = 100.d0  ! 50 approx 1200 attoseconds - width of the gaussian envelop
 real(kind=dp),parameter                    :: E00 = 0.00d0 !0.05d0 !Electric field intensity
-real(kind=dp),parameter                    :: e_ip = 10.d0/27.21138628d0 !Energy of the ionizing pulse in atomic units approx 21.22 ev - the Helium ressonance band
+real(kind=dp),parameter                    :: e_ip = 21.22d0/27.21138628d0 !Energy of the ionizing pulse in atomic units approx 21.22 ev - the Helium ressonance band
 real(kind=dp),dimension(3), parameter      :: ori=[ 1.d0, 1.d0, 1.d0] !Orientation of the electric field of the probing pulse
 real(kind=dp)                              :: mass(3*NA) !3N Vector with the masses of the atoms
 real(kind=dp)                              :: q1(3*NA),q2(3*NA),q1i(3*NA),q2i(3*NA),ai,bi,aii,bii !Conversion vector from internal coordinates q1 and q2 to cartesian coordinates
@@ -43,13 +43,8 @@ real(kind=dp),dimension(:,:),allocatable   :: Ha! Hamiltonian matrix
 real(kind=dp),dimension(:,:,:),allocatable :: ay! Hamiltonian matrix
 real(kind=dp),dimension(:,:),allocatable   :: ham,ax ! Variable to store the Hamiltonian matrix temporary
 real(kind=dp),dimension(:,:),allocatable   :: moq1,moq2! Momentum matrix
-complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:),y_f(:,:)
-real(kind=dp),allocatable                  :: Ha_val(:),dip_val(:,:),am_val(:),moq1_val(:),moq2_val(:) !CSR vectors for sparse matrix multiplication
-integer,allocatable                        :: Ha_rowc(:),Ha_row_col(:,:) !CSR vectors for sparse matrix multiplication
-integer,allocatable                        :: moq1_rowc(:),moq1_row_col(:,:),moq2_rowc(:),moq2_row_col(:,:) !CSR vectors for sparse matrix multiplication
-integer,allocatable                        :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
-integer,allocatable                        :: Ha2_rowc(:),Ha2_row_col(:,:)
-real,allocatable                           :: Ha2_val(:)
+complex(kind=dp),allocatable               :: wfout(:,:),coh(:,:),cohe(:,:)
+real(kind=dp),allocatable                  :: y_f(:,:)
 real(kind=dp)                              :: mass1,mass2,mass3 !Reduced masses to be used in the second derivative
 real(kind=dp)                              :: Et !Final electrical field of the pulse
 real(kind=dp),dimension(3)                 :: orientation,u !Orientation of the electric field of the ionizing pulse
@@ -58,8 +53,23 @@ real(kind=dp)                              :: ind1,ind2,ind3,const1,const2,const
 complex(kind=dp),allocatable               :: pia(:,:),nwf0(:),pice(:),wf0(:)
 complex(kind=dp)                           :: phote( (q1_final-q1_initial+1)*(q2_final-q2_initial+1), Nst, 3 )
 real(kind=dp),dimension(0:nfiles)          :: e1,e2,e3,L1,L2,L3,sum1,sum2,sum3,pq1_1,pq2_1,pq1_2,pq2_2,pq1_3,pq2_3,Te1,Te2,Te3
-real(kind=dp),dimension(0:nfiles)          :: fa,fb,fc,fd,fe,ff,fg,fh,fi,fj,fk,fl,fm,fn,fo 
+real(kind=dp),dimension(0:nfiles)          :: fa,fb,fc,fd,fe,ff,fg,fh,fi,fj,fk,fl,fm,fn,fo
 real(kind=dp)                              :: momq1t(nfiles),momq2t(nfiles),maxmomq1(nsamples),maxmomq2(nsamples) ! This is for saving norm through time
+real(kind=dp),dimension(0:nfiles)          :: nac0,nac1,nac2
+real(kind=dp),dimension(0:nfiles)          :: fp,fq,fr
+integer                                    :: k_Ha,k_di2,k_moq1,k_moq2,k_am,k_nac,k_pot,k_kine,k_dipx,k_dipy,k_dipz
+real(kind=dp),allocatable,dimension(:)     :: Ha_val,dipx_val,dipy_val,dipz_val,am_val,moq1_val,moq2_val,pot_val,kine_val,nac_val !CSR vectors for sparse matrix multiplication
+real(kind=dp),allocatable                  :: di2_val(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: Ha_rowc(:),Ha_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: moq1_rowc(:),moq1_row_col(:,:),moq2_rowc(:),moq2_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: kine_rowc(:),kine_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable :: dipx_rowc(:),dipx_row_col(:,:),dipy_rowc(:),dipy_row_col(:,:),dipz_rowc(:),dipz_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: pot_rowc(:),pot_row_col(:,:),nac_rowc(:),nac_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer,allocatable                        :: am_rowc(:),am_row_col(:,:) !CSR vectors for sparse matrix multiplication
+integer(kind=dp),dimension(0:s*Nst-1)      :: lol
+real(kind=dp)                              :: norma
+real(kind=dp),parameter                    :: const = 1_dp !sq1*sq2*0.0001d0
+
 contains
 
 subroutine load_data
@@ -91,7 +101,7 @@ end do
 
 !-------------------------------------------------------------------!
 ! Loading electronic structure data: Energy and dipole moments      !
-open(unit=99,file='v1neutral.txt',status='old')                     !
+open(unit=99,file='v1neutralf.txt',status='old')                     !
 open(unit=1,file='v1f.txt',status='old')                            !
 open(unit=2,file='v2f.txt',status='old')                            !
 open(unit=3,file='v3f.txt',status='old')                            !
@@ -244,11 +254,12 @@ do i=0,s-1
 end do
 !--------------------------------------------!
 !normalizing                                 !
-soma=0.d0                                    !   
-do i=0,n-1                                   !   
-  soma=soma+dconjg(wf0(i))*wf0(i)            !   
-end do                                       !   
-wf0=wf0/sqrt(soma)                           !   
+soma=0.d0                                    !
+do i=0,n-1                                   !
+  soma=soma+dconjg(wf0(i))*wf0(i) * const    !
+end do                                       ! 
+wf0=wf0/sqrt(soma)                           !
+norma=soma                                   !
 !--------------------------------------------!
 end subroutine generate_initial_wf
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -256,9 +267,9 @@ end subroutine generate_initial_wf
 !Some parts of this function assumes that the number of electronic states is 3
 subroutine p_i_a(i1,i2,pic)
 implicit none
-complex(kind=dp),dimension(Nst,3) :: pic
+complex(kind=dp),dimension(Nst,3) :: pic 
 integer                           :: i1,i2,ii,jj,kk
-character(len=21)                 :: fname00
+character(len=30)                 :: fname00
 character(len=199)                :: fpath0,fpath1
 integer                           :: file1,file2,file3,file4,file5
 integer,parameter                 :: nang=512
@@ -270,19 +281,32 @@ complex(kind=dp),allocatable      :: r0(:,:,:),r1(:,:,:),r2(:,:,:),coef0(:,:),co
 real(kind=dp)                     :: ip0,ip1,ip2
 integer                           :: aux1(Nst)
 real(kind=dp)                     :: aux2(Nst),aux3(Nst)
+!real(kind=dp),dimension(92,144)   :: mask1,mask2,mask3
+
+!open(unit=777,file='mask1.txt',status='old')
+!open(unit=778,file='mask1.txt',status='old')
+!open(unit=779,file='mask1.txt',status='old')
+!do ii=1,92
+!  read(777,*)mask1(ii,:)
+!  read(778,*)mask2(ii,:)
+!  read(779,*)mask3(ii,:)
+!end do
+!close(unit=777)
+!close(unit=778)
+!close(unit=779)
 
 allocate(vec1(nang*nk,Nst*2),vec2(nang*nk,Nst*2),vec3(nang*nk,Nst*2))
 allocate(r0(nk,nang,Nst),r1(nk,nang,Nst),r2(nk,nang,Nst),coef0(nk,Nst),coef1(nk,Nst),coef2(nk,Nst))
 call getcwd(fpath0) !getting the working directory path
-fname00='pice_10000000_0_0.dat'
+fname00='pice_10000000_neut_cat_0_0.dat'
 write(fname00(7:9),'(i0.3)') i2+100
 write(fname00(12:13),'(i0.2)') i1
 fpath1="~/pice_files/"//fname00
 open(newunit=file1,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 1
+write(fname00(26:26),'(i1)') 1
 fpath1="~/pice_files/"//fname00
 open(newunit=file2,file=fpath1,status='old')
-write(fname00(17:17),'(i1)') 2
+write(fname00(26:26),'(i1)') 2
 fpath1="~/pice_files/"//fname00
 open(newunit=file3,file=fpath1,status='old')
 !now read the x, y and z components of the photoionization coupling elements.
@@ -304,7 +328,7 @@ do ii=1,nk
     r2(ii,jj,3)=dcmplx( vec3((ii-1)*nang+jj,5) , vec3((ii-1)*nang+jj,6) )
   end do
 end do
-open(newunit=file4,file='test_sym_dist3.txt',status='old')
+open(newunit=file4,file='test_sym_dist3f.txt',status='old')
 do ii=1,nang
   read(file4,*)theta(ii),phi(ii) !reading the angular distribution used to calculate the photoionization matrix elements 
 end do
@@ -360,9 +384,9 @@ end do
 pic(1,:) = coef0(aux1(1),:)
 pic(2,:) = coef1(aux1(2),:)
 pic(3,:) = coef2(aux1(3),:)
-pic(1,:) = pic(1,:)*dsqrt(aux3(1)) !Here I include the multiplication by the electron density (that is just its momentum)
-pic(2,:) = pic(2,:)*dsqrt(aux3(2)) !Here I include the multiplication by the electron density (that is just its momentum)
-pic(3,:) = pic(3,:)*dsqrt(aux3(3)) !Here I include the multiplication by the electron density (that is just its momentum)
+pic(1,:) = pic(1,:)*dsqrt(aux3(1))!*mask1(i1,i2) !Here I include the multiplication by the electron density (that is just its momentum) and the mask for the sign correction of the wavefunction 
+pic(2,:) = pic(2,:)*dsqrt(aux3(2))!*mask2(i1,i2) !Here I include the multiplication by the electron density (that is just its momentum) and the mask for the sign correction of the wavefunction 
+pic(3,:) = pic(3,:)*dsqrt(aux3(3))!*mask3(i1,i2) !Here I include the multiplication by the electron density (that is just its momentum) and the mask for the sign correction of the wavefunction 
 close(unit=file1)
 close(unit=file2)
 close(unit=file3)
@@ -397,16 +421,28 @@ end subroutine p_i_a
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine generate_random_orientation
 implicit none
-integer :: n
+integer :: n,i3
 real(kind=dp),allocatable :: temp_m(:,:)
+real(kind=dp) :: tmp(2)
 n = nsamples/8
 allocate(temp_m(n,3))
-call random_number(temp_m)
-do i = 1,n
-  temp_m(i,:) = temp_m(i,:) / norm2(temp_m(i,:)) * sqrt(3.d0)
+i3 = 0 
+do while (i3 < n)
+  call random_number(tmp)
+  tmp = tmp*2-1
+  if (tmp(1)**2.0d0 + tmp(2)**2.0d0 < 1.0d0 ) then
+    i3 = i3 + 1 
+    temp_m(i3,1) = 2.0d0 * tmp(1) * dsqrt(1.d0 - tmp(1)**2.d0 - tmp(2)**2.d0)
+    temp_m(i3,2) = 2.0d0 * tmp(2) * dsqrt(1.d0 - tmp(1)**2.d0 - tmp(2)**2.d0)
+    temp_m(i3,3) = 1.d0 - 2.0d0 * (tmp(1)**2.d0 + tmp(2)**2.d0)
+  end if
+end do
+!call random_number(temp_m)
+do i = 1,n 
+  temp_m(i,:) = temp_m(i,:) / norm2(temp_m(i,:)) !* sqrt(3.d0)
 end do
 orie(1:n,:) = temp_m(:,:)
-do i = 1,n
+do i = 1,n 
   orie(i+n,:) = rotz( temp_m(i,:), 90.d0*pi/180.d0 )
 end do
 do i = 1,2*n

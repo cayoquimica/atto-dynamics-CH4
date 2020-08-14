@@ -9,7 +9,8 @@ use omp_lib
 implicit none
 integer                      :: n,jj,ii,nana !m=dimension of the Hamiltonian (Nq1*Nq2*Nst x Nq1*Nq2*Nst)
 real(kind=dp)                :: ompt0,ompt1,x1,x2,soma
-integer(kind=dp)             :: lol(0:Nq1*Nq2*Nst-1)
+integer(kind=dp)             :: lolx(0:Nq1*Nq2*Nst-1),loly(0:Nq1*Nq2*Nst-1),lolz(0:Nq1*Nq2*Nst-1)
+integer(kind=dp)             :: kx,ky,kz
 !integer,parameter            :: q1_initial = 25
 !integer,parameter            :: q1_final = 70
 !integer,parameter            :: q2_initial = 75
@@ -78,23 +79,23 @@ call load_data
 !write(*,*)'The time to prepare the initial wavepacket=',ompt1 - ompt0, "seconds"
 
 call hamiltonian_matrix
-write(*,*)'Kinetic and potential energy loaded'
+write(*,*)'Kinetic and potential energy loaded. Their CSR vectors are created.'
 call first_derivative_matrix_q1
 !$ x1 = omp_get_wtime()
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the first derivative with respect of q1                                                                        !
-lol=0.d0
+lol=0.d0                                                                                                                    !
 k=0                                                                                                                         !
-!$OMP parallel do shared(lol)
+!$OMP parallel do shared(lol)                                                                                               !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (moq1(i,j) /= 0.d0) then                                                                                             !
-      lol(i) = lol(i) + 1
+      lol(i) = lol(i) + 1                                                                                                   !
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
-!$OMP end parallel do 
-k = sum(lol)
+!$OMP end parallel do                                                                                                       !
+k = sum(lol)                                                                                                                !
 k_moq1=k                                                                                                                    !
 write(*,*)'k moq1= ',k                                                                                                      !
 allocate(moq1_val(0:k-1),moq1_rowc(0:n), moq1_row_col(0:k-1,0:1))                                                           !
@@ -119,18 +120,18 @@ write(*,*)'Csr vectors for first derivative along q1 created'
 call first_derivative_matrix_q2
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
 !This is for the first derivative with respect of q1                                                                        !
-lol=0.d0
+lol=0.d0                                                                                                                    !
 k=0                                                                                                                         !
-!$OMP parallel do shared(lol)
+!$OMP parallel do shared(lol)                                                                                               !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (moq2(i,j) /= 0.d0) then                                                                                             !
-      lol(i) = lol(i) + 1
+      lol(i) = lol(i) + 1                                                                                                   !
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
-!$OMP end parallel do 
-k = sum(lol)
+!$OMP end parallel do                                                                                                       !
+k = sum(lol)                                                                                                                !
 k_moq2=k                                                                                                                    !
 write(*,*)'k moq2= ',k                                                                                                      !
 allocate(moq2_val(0:k-1),moq2_rowc(0:n), moq2_row_col(0:k-1,0:1))                                                           !
@@ -218,23 +219,92 @@ do i=0,n-1
 end do
 !$OMP end parallel do
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
-!This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
-lol=0.d0
-k=0                                                                                                                         !
-!$OMP parallel do shared(lol)
+lolx=0.d0                                                                                                                   !
+loly=0.d0                                                                                                                   !
+lolz=0.d0                                                                                                                   !
+!$OMP parallel do shared(lol)                                                                                               !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
-    if (ham(i,j) /= 0.d0) then                                                                                             !
-      lol(i) = lol(i) + 1
+    if (ay(i,j,0) /= 0.d0) then                                                                                             !
+      lolx(i) = lolx(i) + 1                                                                                                 !
+    end if                                                                                                                  !
+    if (ay(i,j,1) /= 0.d0) then                                                                                             !
+      loly(i) = loly(i) + 1                                                                                                 !
+    end if                                                                                                                  !
+    if (ay(i,j,2) /= 0.d0) then                                                                                             !
+      lolz(i) = lolz(i) + 1                                                                                                 !
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
-!$OMP end parallel do 
-k = sum(lol)
+!$OMP end parallel do                                                                                                       !
+kx = sum(lolx)                                                                                                              !
+ky = sum(loly)                                                                                                              !
+kz = sum(lolz)                                                                                                              !
+k_dipx=kx                                                                                                                   !
+k_dipy=ky                                                                                                                   !
+k_dipz=kz                                                                                                                   !
+allocate(dipx_val(0:kx-1),dipx_rowc(0:n),dipx_row_col(0:kx-1,0:1))                                                          !
+allocate(dipy_val(0:ky-1),dipy_rowc(0:n),dipy_row_col(0:ky-1,0:1))                                                          !
+allocate(dipz_val(0:kz-1),dipz_rowc(0:n),dipz_row_col(0:kz-1,0:1))                                                          !
+!                                                                                                                           !
+dipx_rowc=0.d0                                                                                                              !
+k=0                                                                                                                         !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ay(i,j,0) /= 0.d0) then                                                                                             !
+      dipx_val(k)=ay(i,j,0)  !storing each non-zero element                                                                 !
+      dipx_row_col(k,0)=i !storing the row index of each non-zero element                                                   !
+      dipx_row_col(k,1)=j !storing the column index of each non-zero element                                                !
+      k=k+1                                                                                                                 !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+  dipx_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                   !
+end do                                                                                                                      !
+dipy_rowc=0.d0                                                                                                              !
+k=0                                                                                                                         !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ay(i,j,1) /= 0.d0) then                                                                                             !
+      dipy_val(k)=ay(i,j,1)  !storing each non-zero element                                                                 !
+      dipy_row_col(k,0)=i !storing the row index of each non-zero element                                                   !
+      dipy_row_col(k,1)=j !storing the column index of each non-zero element                                                !
+      k=k+1                                                                                                                 !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+  dipy_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                   !
+end do                                                                                                                      !
+dipz_rowc=0.d0                                                                                                              !
+k=0                                                                                                                         !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ay(i,j,2) /= 0.d0) then                                                                                             !
+      dipz_val(k)=ay(i,j,2)  !storing each non-zero element                                                                 !
+      dipz_row_col(k,0)=i !storing the row index of each non-zero element                                                   !
+      dipz_row_col(k,1)=j !storing the column index of each non-zero element                                                !
+      k=k+1                                                                                                                 !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+  dipz_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                   !
+end do                                                                                                                      !
+!---------------------------------------------------------------------------------------------------------------------------!
+!Creating the CSR vectors --------------------------------------------------------------------------------------------------!
+!This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
+lol=0.d0                                                                                                                    !
+k=0                                                                                                                         !
+!$OMP parallel do shared(lol)                                                                                               !
+do i=0,n-1 !running through rows                                                                                            !
+  do j=0,n-1 !running through columns                                                                                       !
+    if (ham(i,j) /= 0.d0) then                                                                                              !
+      lol(i) = lol(i) + 1                                                                                                   !
+    end if                                                                                                                  !
+  end do                                                                                                                    !
+end do                                                                                                                      !
+!$OMP end parallel do                                                                                                       !
+k = sum(lol)                                                                                                                !
 k_Ha=k                                                                                                                      !
-k_dip=k                                                                                                                     !
+k_di2=k                                                                                                                     !
 write(*,*)'k_Ha = ',k_Ha                                                                                                    !
-allocate(Ha_val(0:k-1),Ha_rowc(0:n),Ha_row_col(0:k-1,0:1),dip_val(0:k-1,0:2))                                               !
+allocate(Ha_val(0:k-1),Ha_rowc(0:n),Ha_row_col(0:k-1,0:1),di2_val(0:k-1,0:2))                                               !
 !                                                                                                                           !
 Ha_rowc=0.d0                                                                                                                !
 k=0                                                                                                                         !
@@ -244,9 +314,9 @@ do i=0,n-1 !running through rows                                                
       Ha_val(k)=Ha(i,j)  !storing each non-zero element                                                                     !
       Ha_row_col(k,0)=i !storing the row index of each non-zero element                                                     !
       Ha_row_col(k,1)=j !storing the column index of each non-zero element                                                  !
-      dip_val(k,0)=ay(i,j,0)  !storing each non-zero element                                                                !
-      dip_val(k,1)=ay(i,j,1)  !storing each non-zero element                                                                !
-      dip_val(k,2)=ay(i,j,2)  !storing each non-zero element                                                                !
+      di2_val(k,0)=ay(i,j,0)  !storing each non-zero element                                                                !
+      di2_val(k,1)=ay(i,j,1)  !storing each non-zero element                                                                !
+      di2_val(k,2)=ay(i,j,2)  !storing each non-zero element                                                                !
       k=k+1                                                                                                                 !
     end if                                                                                                                  !
   end do                                                                                                                    !
@@ -256,9 +326,113 @@ end do                                                                          
 deallocate(Ha,ham,ay)
 call first_derivative_matrix_q1
 call first_derivative_matrix_q2
+call angular_momentum(n)
 !$ ompt1 = omp_get_wtime()
 write(*,*) 'The time to load the matrices=',ompt1 - ompt0, "seconds"
 
+write(*,*) 'Initiating saving dq1'
+
+open(unit=20,file='csr_vectors_dq1',status='unknown')
+write(20,'(i12)')k_moq1
+do i=0,k_moq1-1
+  write(20,'(e23.15e3,2i12)')moq1_val(i),moq1_row_col(i,0),moq1_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')moq1_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving dq2'
+
+open(unit=20,file='csr_vectors_dq2',status='unknown')
+write(20,'(i12)')k_moq2
+do i=0,k_moq2-1
+  write(20,'(e23.15e3,2i12)')moq2_val(i),moq2_row_col(i,0),moq2_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')moq2_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving kin'
+
+open(unit=20,file='csr_vectors_kin',status='unknown')
+write(20,'(i12)')k_kine
+do i=0,k_kine-1
+  write(20,'(e23.15e3,2i12)')kine_val(i),kine_row_col(i,0),kine_row_col(i,1)
+end do
+
+do i=0,n
+  write(20,'(i12)')kine_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving pot'
+
+open(unit=20,file='csr_vectors_pot',status='unknown')
+write(20,'(i12)')k_pot
+do i=0,k_pot-1
+  write(20,'(e23.15e3,2i12)')pot_val(i),pot_row_col(i,0),pot_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')pot_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving dip'
+
+open(unit=20,file='csr_vectors_dip',status='unknown')
+write(20,'(i12)')k_dipx
+do i=0,k_dipx-1
+  write(20,'(e23.15e3,2i12)')dipx_val(i),dipx_row_col(i,0),dipx_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')dipx_rowc(i)
+end do
+write(20,'(i12)')k_dipy
+do i=0,k_dipy-1
+  write(20,'(e23.15e3,2i12)')dipy_val(i),dipy_row_col(i,0),dipy_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')dipy_rowc(i)
+end do
+write(20,'(i12)')k_dipz
+do i=0,k_dipz-1
+  write(20,'(e23.15e3,2i12)')dipz_val(i),dipz_row_col(i,0),dipz_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')dipz_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving nac'
+
+open(unit=20,file='csr_vectors_NAC',status='unknown')
+write(20,'(i12)')k_nac
+do i=0,k_nac-1
+  write(20,'(e23.15e3,2i12)')nac_val(i),nac_row_col(i,0),nac_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')nac_rowc(i)
+end do
+close(unit=20)
+
+write(*,*) 'Initiating saving anm'
+
+open(unit=20,file='csr_vectors_anm',status='unknown')
+write(20,'(i12)')k_am
+do i=0,k_am-1
+  write(20,'(e23.15e3,2i12)')am_val(i),am_row_col(i,0),am_row_col(i,1)
+end do
+do i=0,n
+  write(20,'(i12)')am_rowc(i)
+end do
+close(unit=20)
+
+
+write(*,*) 'Initiating saving normal csr vectors'
+
+!DOING THE ORIGINAL WITH THE WHOLE HAMILTONIAN, THE DIPOLES APART, FIRST DERIVATIVES AND ANGULAR MOMENTUM
 open(unit=20,file='csr_vectors',status='unknown')
 write(20,'(i12)')k_moq1
 do i=0,k_moq1-1
@@ -284,13 +458,10 @@ do i=0,n
   write(20,'(i12)')Ha_rowc(i)
 end do
 
-write(20,'(i12)')k_dip
-do i=0,k_dip-1
-  write(20,'(3e23.15e3)')dip_val(i,:)
+write(20,'(i12)')k_di2
+do i=0,k_di2-1
+  write(20,'(3e23.15e3)')di2_val(i,:)
 end do
-
-
-call angular_momentum(n)
 
 write(20,'(i12)')k_am
 do i=0,k_am-1
@@ -300,9 +471,10 @@ do i=0,n
   write(20,'(i12)')am_rowc(i)
 end do
 
+close(unit=20)
+
 write(*,*)'FINISHED'
 
- close(unit=20)
 
 end program load_hamiltonian
 
@@ -484,10 +656,17 @@ subroutine nac_ha_modify
 use global_param
 use omp_lib
 integer                               :: cont,n
-real(kind=dp), dimension(Nq1,Nq2)     :: nac21q1,nac21q2,nac31q1,nac31q2,nac32q1,nac32q2
+real(kind=dp), dimension(Nq1,Nq2)     :: nac10c0x, nac10h1x, nac10h2x, nac10h3x, nac10h4x 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac10c0y, nac10h1y, nac10h2y, nac10h3y, nac10h4y 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac10c0z, nac10h1z, nac10h2z, nac10h3z, nac10h4z 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac20c0x, nac20h1x, nac20h2x, nac20h3x, nac20h4x 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac20c0y, nac20h1y, nac20h2y, nac20h3y, nac20h4y 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac20c0z, nac20h1z, nac20h2z, nac20h3z, nac20h4z 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac21c0x, nac21h1x, nac21h2x, nac21h3x, nac21h4x 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac21c0y, nac21h1y, nac21h2y, nac21h3y, nac21h4y 
+real(kind=dp), dimension(Nq1,Nq2)     :: nac21c0z, nac21h1z, nac21h2z, nac21h3z, nac21h4z 
 real(kind=dp), dimension(0:Nq1*Nq2-1) :: vec1,vec2,vec3,vec4,vec5,vec6
 
-integer(kind=dp), dimension(0:Nq1*Nq2*Nst-1) :: lol
 real(kind=dp) :: truni,trunf
 
 !$ truni = omp_get_wtime()
@@ -505,37 +684,131 @@ end do
 !-------------------------------------------------------------------!
 !Loading NACS                                                       !
 !THE NACS ARE ALREADY MASS SCALED                                   !
-open(unit=1,file='nac21q1f.txt',status='old')                       !
-open(unit=2,file='nac21q2f.txt',status='old')                       !
-open(unit=3,file='nac31q1f.txt',status='old')                       !
-open(unit=4,file='nac31q2f.txt',status='old')                       !
-open(unit=5,file='nac32q1f.txt',status='old')                       !
-open(unit=6,file='nac32q2f.txt',status='old')                       !
+open(unit=21,file='nac10c0xf.txt',status='old')                      !
+open(unit=22,file='nac10c0yf.txt',status='old')                      !
+open(unit=23,file='nac10c0zf.txt',status='old')                      !
+open(unit=24,file='nac10h1xf.txt',status='old')                      !
+open(unit=25,file='nac10h1yf.txt',status='old')                      !
+open(unit=26,file='nac10h1zf.txt',status='old')                      !
+open(unit=27,file='nac10h2xf.txt',status='old')                      !
+open(unit=28,file='nac10h2yf.txt',status='old')                      !
+open(unit=29,file='nac10h2zf.txt',status='old')                      !
+open(unit=30,file='nac10h3xf.txt',status='old')                      !
+open(unit=31,file='nac10h3yf.txt',status='old')                      !
+open(unit=32,file='nac10h3zf.txt',status='old')                      !
+open(unit=33,file='nac10h4xf.txt',status='old')                      !
+open(unit=34,file='nac10h4yf.txt',status='old')                      !
+open(unit=35,file='nac10h4zf.txt',status='old')                      !
+open(unit=36,file='nac20c0xf.txt',status='old')                      !
+open(unit=37,file='nac20c0yf.txt',status='old')                      !
+open(unit=38,file='nac20c0zf.txt',status='old')                      !
+open(unit=39,file='nac20h1xf.txt',status='old')                      !
+open(unit=40,file='nac20h1yf.txt',status='old')                      !
+open(unit=41,file='nac20h1zf.txt',status='old')                      !
+open(unit=42,file='nac20h2xf.txt',status='old')                      !
+open(unit=43,file='nac20h2yf.txt',status='old')                      !
+open(unit=44,file='nac20h2zf.txt',status='old')                      !
+open(unit=45,file='nac20h3xf.txt',status='old')                      !
+open(unit=46,file='nac20h3yf.txt',status='old')                      !
+open(unit=47,file='nac20h3zf.txt',status='old')                      !
+open(unit=48,file='nac20h4xf.txt',status='old')                      !
+open(unit=49,file='nac20h4yf.txt',status='old')                      !
+open(unit=50,file='nac20h4zf.txt',status='old')                      !
+open(unit=51,file='nac21c0xf.txt',status='old')                      !
+open(unit=52,file='nac21c0yf.txt',status='old')                      !
+open(unit=53,file='nac21c0zf.txt',status='old')                      !
+open(unit=54,file='nac21h1xf.txt',status='old')                      !
+open(unit=55,file='nac21h1yf.txt',status='old')                      !
+open(unit=56,file='nac21h1zf.txt',status='old')                      !
+open(unit=57,file='nac21h2xf.txt',status='old')                      !
+open(unit=58,file='nac21h2yf.txt',status='old')                      !
+open(unit=59,file='nac21h2zf.txt',status='old')                      !
+open(unit=60,file='nac21h3xf.txt',status='old')                      !
+open(unit=61,file='nac21h3yf.txt',status='old')                      !
+open(unit=62,file='nac21h3zf.txt',status='old')                      !
+open(unit=63,file='nac21h4xf.txt',status='old')                      !
+open(unit=64,file='nac21h4yf.txt',status='old')                      !
+open(unit=65,file='nac21h4zf.txt',status='old')                      !
 do i=1,Nq1                                                          !
-  read(1,*) nac21q1(i,:)                                            !
-  read(2,*) nac21q2(i,:)                                            !
-  read(3,*) nac31q1(i,:)                                            !
-  read(4,*) nac31q2(i,:)                                            !
-  read(5,*) nac32q1(i,:)                                            !
-  read(6,*) nac32q2(i,:)                                            !
+  read(21,*) nac10c0x(i,:)                                          !
+  read(22,*) nac10c0y(i,:)                                          !
+  read(23,*) nac10c0z(i,:)                                          !
+  read(24,*) nac10h1x(i,:)                                          !
+  read(25,*) nac10h1y(i,:)                                          !
+  read(26,*) nac10h1z(i,:)                                          !
+  read(27,*) nac10h2x(i,:)                                          !
+  read(28,*) nac10h2y(i,:)                                          !
+  read(29,*) nac10h2z(i,:)                                          !
+  read(30,*) nac10h3x(i,:)                                          !
+  read(31,*) nac10h3y(i,:)                                          !
+  read(32,*) nac10h3z(i,:)                                          !
+  read(33,*) nac10h4x(i,:)                                          !
+  read(34,*) nac10h4y(i,:)                                          !
+  read(35,*) nac20h4z(i,:)                                          !
+  read(36,*) nac20c0x(i,:)                                          !
+  read(37,*) nac20c0y(i,:)                                          !
+  read(38,*) nac20c0z(i,:)                                          !
+  read(39,*) nac20h1x(i,:)                                          !
+  read(40,*) nac20h1y(i,:)                                          !
+  read(41,*) nac20h1z(i,:)                                          !
+  read(42,*) nac20h2x(i,:)                                          !
+  read(43,*) nac20h2y(i,:)                                          !
+  read(44,*) nac20h2z(i,:)                                          !
+  read(45,*) nac20h3x(i,:)                                          !
+  read(46,*) nac20h3y(i,:)                                          !
+  read(47,*) nac20h3z(i,:)                                          !
+  read(48,*) nac20h4x(i,:)                                          !
+  read(49,*) nac20h4y(i,:)                                          !
+  read(50,*) nac20h4z(i,:)                                          !
+  read(51,*) nac21c0x(i,:)                                          !
+  read(52,*) nac21c0y(i,:)                                          !
+  read(53,*) nac21c0z(i,:)                                          !
+  read(54,*) nac21h1x(i,:)                                          !
+  read(55,*) nac21h1y(i,:)                                          !
+  read(56,*) nac21h1z(i,:)                                          !
+  read(57,*) nac21h2x(i,:)                                          !
+  read(58,*) nac21h2y(i,:)                                          !
+  read(59,*) nac21h2z(i,:)                                          !
+  read(60,*) nac21h3x(i,:)                                          !
+  read(61,*) nac21h3y(i,:)                                          !
+  read(62,*) nac21h3z(i,:)                                          !
+  read(63,*) nac21h4x(i,:)                                          !
+  read(64,*) nac21h4y(i,:)                                          !
+  read(65,*) nac21h4z(i,:)                                          !
 end do                                                              !
- close(unit=1)                                                      !
- close(unit=2)                                                      !
- close(unit=3)                                                      !
- close(unit=4)                                                      !
- close(unit=5)                                                      !
- close(unit=6)                                                      !
+do i=21,65                                                          !
+  close(unit=i)                                                     !
+end do                                                              !
 !-------------------------------------------------------------------!
 !vectorizing the grid nac matrix
 cont=0
+vec1=0_dp;vec2=0_dp;vec3=0_dp;vec4=0_dp;vec5=0_dp;vec6=0_dp;
 do j=0,Nq2-1
   do i=0,Nq1-1
-    vec1(cont)=nac21q1(i+1,j+1)*ai       ! The 'ai' and 'bi' terms is to transform back to cartesian
-    vec2(cont)=nac21q2(i+1,j+1)*bi 
-    vec3(cont)=nac31q1(i+1,j+1)*ai
-    vec4(cont)=nac31q2(i+1,j+1)*bi
-    vec5(cont)=nac32q1(i+1,j+1)*ai
-    vec6(cont)=nac32q2(i+1,j+1)*bi
+vec1(cont)=nac10c0x(i+1,j+1)*q1(1)/mass(1)+nac10c0y(i+1,j+1)*q1(2)/mass(2)+nac10c0z(i+1,j+1)*q1(3)/mass(3)+nac10h1x(i+1,j+1)*q1(4)/&
+mass(4)+nac10h1y(i+1,j+1)*q1(5)/mass(5)+nac10h1z(i+1,j+1)*q1(6)/mass(6)+nac10h2x(i+1,j+1)*q1(7)/mass(7)+nac10h2y(i+1,j+1)*q1(8)/&
+mass(8)+nac10h2z(i+1,j+1)*q1(9)/mass(9)+nac10h3x(i+1,j+1)*q1(10)/mass(10)+nac10h3y(i+1,j+1)*q1(11)/mass(11)+nac10h3z(i+1,j+1)*&
+q1(12)/mass(12)+nac10h4x(i+1,j+1)*q1(13)/mass(13)+nac10h4y(i+1,j+1)*q1(14)/mass(14)+nac10h4z(i+1,j+1)*q1(15)/mass(15)
+vec2(cont)=nac10c0x(i+1,j+1)*q2(1)/mass(1)+nac10c0y(i+1,j+1)*q2(2)/mass(2)+nac10c0z(i+1,j+1)*q2(3)/mass(3)+nac10h1x(i+1,j+1)*q2(4)/&
+mass(4)+nac10h1y(i+1,j+1)*q2(5)/mass(5)+nac10h1z(i+1,j+1)*q2(6)/mass(6)+nac10h2x(i+1,j+1)*q2(7)/mass(7)+nac10h2y(i+1,j+1)*q2(8)/&
+mass(8)+nac10h2z(i+1,j+1)*q2(9)/mass(9)+nac10h3x(i+1,j+1)*q2(10)/mass(10)+nac10h3y(i+1,j+1)*q2(11)/mass(11)+nac10h3z(i+1,j+1)*&
+q2(12)/mass(12)+nac10h4x(i+1,j+1)*q2(13)/mass(13)+nac10h4y(i+1,j+1)*q2(14)/mass(14)+nac10h4z(i+1,j+1)*q2(15)/mass(15)
+vec3(cont)=nac20c0x(i+1,j+1)*q1(1)/mass(1)+nac20c0y(i+1,j+1)*q1(2)/mass(2)+nac20c0z(i+1,j+1)*q1(3)/mass(3)+nac20h1x(i+1,j+1)*q1(4)/&
+mass(4)+nac20h1y(i+1,j+1)*q1(5)/mass(5)+nac20h1z(i+1,j+1)*q1(6)/mass(6)+nac20h2x(i+1,j+1)*q1(7)/mass(7)+nac20h2y(i+1,j+1)*q1(8)/&
+mass(8)+nac20h2z(i+1,j+1)*q1(9)/mass(9)+nac20h3x(i+1,j+1)*q1(10)/mass(10)+nac20h3y(i+1,j+1)*q1(11)/mass(11)+nac20h3z(i+1,j+1)*&
+q1(12)/mass(12)+nac20h4x(i+1,j+1)*q1(13)/mass(13)+nac20h4y(i+1,j+1)*q1(14)/mass(14)+nac20h4z(i+1,j+1)*q1(15)/mass(15)
+vec4(cont)=nac20c0x(i+1,j+1)*q2(1)/mass(1)+nac20c0y(i+1,j+1)*q2(2)/mass(2)+nac20c0z(i+1,j+1)*q2(3)/mass(3)+nac20h1x(i+1,j+1)*q2(4)/&
+mass(4)+nac20h1y(i+1,j+1)*q2(5)/mass(5)+nac20h1z(i+1,j+1)*q2(6)/mass(6)+nac20h2x(i+1,j+1)*q2(7)/mass(7)+nac20h2y(i+1,j+1)*q2(8)/&
+mass(8)+nac20h2z(i+1,j+1)*q2(9)/mass(9)+nac20h3x(i+1,j+1)*q2(10)/mass(10)+nac20h3y(i+1,j+1)*q2(11)/mass(11)+nac20h3z(i+1,j+1)*&
+q2(12)/mass(12)+nac20h4x(i+1,j+1)*q2(13)/mass(13)+nac20h4y(i+1,j+1)*q2(14)/mass(14)+nac20h4z(i+1,j+1)*q2(15)/mass(15)
+vec5(cont)=nac21c0x(i+1,j+1)*q1(1)/mass(1)+nac21c0y(i+1,j+1)*q1(2)/mass(2)+nac21c0z(i+1,j+1)*q1(3)/mass(3)+nac21h1x(i+1,j+1)*q1(4)/&
+mass(4)+nac21h1y(i+1,j+1)*q1(5)/mass(5)+nac21h1z(i+1,j+1)*q1(6)/mass(6)+nac21h2x(i+1,j+1)*q1(7)/mass(7)+nac21h2y(i+1,j+1)*q1(8)/&
+mass(8)+nac21h2z(i+1,j+1)*q1(9)/mass(9)+nac21h3x(i+1,j+1)*q1(10)/mass(10)+nac21h3y(i+1,j+1)*q1(11)/mass(11)+nac21h3z(i+1,j+1)*&
+q1(12)/mass(12)+nac21h4x(i+1,j+1)*q1(13)/mass(13)+nac21h4y(i+1,j+1)*q1(14)/mass(14)+nac21h4z(i+1,j+1)*q1(15)/mass(15)
+vec6(cont)=nac21c0x(i+1,j+1)*q2(1)/mass(1)+nac21c0y(i+1,j+1)*q2(2)/mass(2)+nac21c0z(i+1,j+1)*q2(3)/mass(3)+nac21h1x(i+1,j+1)*q2(4)/&
+mass(4)+nac21h1y(i+1,j+1)*q2(5)/mass(5)+nac21h1z(i+1,j+1)*q2(6)/mass(6)+nac21h2x(i+1,j+1)*q2(7)/mass(7)+nac21h2y(i+1,j+1)*q2(8)/&
+mass(8)+nac21h2z(i+1,j+1)*q2(9)/mass(9)+nac21h3x(i+1,j+1)*q2(10)/mass(10)+nac21h3y(i+1,j+1)*q2(11)/mass(11)+nac21h3z(i+1,j+1)*&
+q2(12)/mass(12)+nac21h4x(i+1,j+1)*q2(13)/mass(13)+nac21h4y(i+1,j+1)*q2(14)/mass(14)+nac21h4z(i+1,j+1)*q2(15)/mass(15)
     cont=cont+1
   end do
 end do
@@ -567,61 +840,57 @@ write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
 write(*,*)'NAC EVALUATED, STARTING TO CREATE CSR VECTORS'
 
 !Creating the CSR vectors --------------------------------------------------------------------------------------------------!
-!This is for the the hamiltonian - dipoles will be in a separate vector                                                     !
 k=0                                                                                                                         !
-lol=0.d0
-!$OMP parallel do shared(lol)
+lol=0.d0                                                                                                                    !
+!$OMP parallel do shared(lol)                                                                                               !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (ham(i,j) /= 0.d0) then                                                                                              !
-      lol(i) = lol(i)+1
+      lol(i) = lol(i)+1                                                                                                     !
     end if                                                                                                                  !
   end do                                                                                                                    !
 end do                                                                                                                      !
-!$OMP end parallel do
-k = sum(lol)
-k_Ha2=k                                                                                                                     !
-write(*,*)'k_Ha (only NAC) = ',k_Ha2                                                                                        !
-!$ trunf = omp_get_wtime()
-write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
-!$ truni = omp_get_wtime()
-
-allocate(Ha2_val(0:k-1),Ha2_rowc(0:n),Ha2_row_col(0:k-1,0:1))                                                               !
-Ha2_val = 1.23456789d0
+!$OMP end parallel do                                                                                                       !
+k = sum(lol)                                                                                                                !
+k_nac=k                                                                                                                     !
+write(*,*)'k_Ha (only NAC) = ',k_nac                                                                                        !
+!$ trunf = omp_get_wtime()                                                                                                  !
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'                                                         !
+!$ truni = omp_get_wtime()                                                                                                  !
+                                                                                                                            !
+allocate(nac_val(0:k-1),nac_rowc(0:n),nac_row_col(0:k-1,0:1))                                                               !
+nac_val = 1.23456789d0                                                                                                      !
 !                                                                                                                           !
-Ha2_rowc=0.d0                                                                                                               !
-!$ trunf = omp_get_wtime()
-write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
-!$ truni = omp_get_wtime()
+nac_rowc=0.d0                                                                                                               !
+!$ trunf = omp_get_wtime()                                                                                                  !
+write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'                                                         !
+!$ truni = omp_get_wtime()                                                                                                  !
 k=0                                                                                                                         !
 do i=0,n-1 !running through rows                                                                                            !
   do j=0,n-1 !running through columns                                                                                       !
     if (ham(i,j) /= 0.d0) then                                                                                              !
-      Ha2_val(k) = - ham(i,j)  !storing each non-zero element                                                               !
-      Ha2_row_col(k,0)=i !storing the row index of each non-zero element                                                    !
-      Ha2_row_col(k,1)=j !storing the column index of each non-zero element                                                 !
-!write(*,*)ham(i,j)
-!read(*,*)
+      nac_val(k) = - ham(i,j)  !storing each non-zero element                                                               !
+      nac_row_col(k,0)=i !storing the row index of each non-zero element                                                    !
+      nac_row_col(k,1)=j !storing the column index of each non-zero element                                                 !
       k=k+1                                                                                                                 !
     end if                                                                                                                  !
   end do                                                                                                                    !
-  Ha2_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    !
+  nac_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    !
 end do                                                                                                                      !
 !---------------------------------------------------------------------------------------------------------------------------!
 !$ trunf = omp_get_wtime()
 write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
 !$ truni = omp_get_wtime()
-open(unit=20,file='csr_vectors_only_NAC',status='unknown')
-write(20,'(i12)')k_Ha2
-do i=0,k_Ha2-1
-  write(20,'(e23.15e3,2i12)')Ha2_val(i),Ha2_row_col(i,0),Ha2_row_col(i,1)
-end do
-do i=0,n
-  write(20,'(i12)')Ha2_rowc(i)
-end do
-close(unit=20)
 write(*,*)'Parte só do NAC feita'
 
+! Merging this matrix with the one that includes the second derivatives and the potential energy, Ha
+!$OMP PARALLEL DO shared(ha,ham)
+do i=0,Nst*Nq1*Nq2-1
+  do j=0,Nst*Nq1*Nq2-1
+    Ha(i,j)=Ha(i,j)-ham(i,j) ! Minus because of the sign of the kinetic energy term
+  end do
+end do
+!$OMP END PARALLEL DO
 !$ trunf = omp_get_wtime()
 write(*,'(a38,f9.1,a9)')'Time = ', (trunf-truni)/60.d0, ' minutes.'
 !$ truni = omp_get_wtime()
@@ -704,7 +973,9 @@ end subroutine angular_momentum
 
 subroutine hamiltonian_matrix
 use global_param
+integer n
 
+n = s * Nst
 ! This subroutine builds the hamiltonian matrrix and stores it in variable Ha. 
 ! It also creates a temporary copy of Ha in the variable ham, that can be modified to include the time dependent interaction of the dipoles with the pulse.
 ! So, ham is the real matrix that will be used in the code and both ham and Ha will be global variables.
@@ -980,6 +1251,83 @@ end do ! end of do through electronic states                                    
 !-------------------------------------------------------------------------------------------------------------------------|       !
 ! Finishing the kinetic energy part                                                                                               !
 ax(: , :)= - 1.d0/2.d0 * ax(: , :)                                                                                                !
+!Creating the CSR vectors --------------------------------------------------------------------------------------------------!     !
+lol=0.d0                                                                                                                    !     !
+k=0                                                                                                                         !     !
+!$OMP parallel do shared(lol)                                                                                               !     !
+do i=0,n-1 !running through rows                                                                                            !     !
+  do j=0,n-1 !running through columns                                                                                       !     !
+    if (ax(i+1,j+1) /= 0.d0) then                                                                                           !     !
+      lol(i) = lol(i) + 1                                                                                                   !     !
+    end if                                                                                                                  !     !
+  end do                                                                                                                    !     !
+end do                                                                                                                      !     !
+!$OMP end parallel do                                                                                                       !     !
+k = sum(lol)                                                                                                                !     !
+k_kine = k                                                                                                                  !     !
+write(*,*)'k kine= ',k                                                                                                      !     !
+allocate(kine_val(0:k-1),kine_rowc(0:n),kine_row_col(0:k-1,0:1))                                                            !     !
+!                                                                                                                           !     !
+kine_rowc=0.d0                                                                                                              !     !
+k=0                                                                                                                         !     !
+do i=0,n-1 !running through rows                                                                                            !     !
+  do j=0,n-1 !running through columns                                                                                       !     !
+    if (ax(i+1,j+1) /= 0.d0) then                                                                                           !     !
+      kine_val(k)=ax(i+1,j+1)  !storing each non-zero element                                                               !     !
+      kine_row_col(k,0)=i !storing the row index of each non-zero element                                                   !     !
+      kine_row_col(k,1)=j !storing the column index of each non-zero element                                                !     !
+      k=k+1                                                                                                                 !     !
+    end if                                                                                                                  !     !
+  end do                                                                                                                    !     !
+  kine_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                   !     !
+end do                                                                                                                      !     !
+!---------------------------------------------------------------------------------------------------------------------------!     !
+allocate (Ha(0:Nst*Nq1*Nq2-1,0:Nst*Nq1*Nq2-1))                                                                                    !
+!$OMP PARALLEL DO shared(Ha)                                                                                                      !
+do i=0,Nst*Nq1*Nq2-1                                                                                                              !
+  do j=0,Nst*Nq1*Nq2-1                                                                                                            !
+    Ha(i,j)=0.0d0                                                                                                                 !
+  end do                                                                                                                          !
+end do                                                                                                                            !
+!$OMP end parallel do                                                                                                             !
+do j=0*Nq1,(Nq2-1)*Nq1,Nq1 ! Moving through the boxes, from the fisrt to the last one                                             !
+  do i=1,Nq1 ! Moving inside the box                                                                                              !
+    Ha( 0*s + j + i -1, 0*s + j + i -1) = Ha( 0*s + j + i -1, 0*s + j + i -1) + pot1 (i,(j+Nq1)/Nq1)                              !
+    Ha( 1*s + j + i -1, 1*s + j + i -1) = Ha( 1*s + j + i -1, 1*s + j + i -1) + pot2 (i,(j+Nq1)/Nq1)                              !
+    Ha( 2*s + j + i -1, 2*s + j + i -1) = Ha( 2*s + j + i -1, 2*s + j + i -1) + pot3 (i,(j+Nq1)/Nq1)                              !
+  end do ! end of do through single box                                                                                           !
+end do ! end of do through boxes                                                                                                  !
+!Creating the CSR vectors --------------------------------------------------------------------------------------------------!     !
+lol=0.d0                                                                                                                    !     !
+k=0                                                                                                                         !     !
+!$OMP parallel do shared(lol)                                                                                               !     !
+do i=0,n-1 !running through rows                                                                                            !     !
+  do j=0,n-1 !running through columns                                                                                       !     !
+    if (Ha(i,j) /= 0.d0) then                                                                                               !     !
+      lol(i) = lol(i) + 1                                                                                                   !     !
+    end if                                                                                                                  !     !
+  end do                                                                                                                    !     !
+end do                                                                                                                      !     !
+!$OMP end parallel do                                                                                                       !     !
+k = sum(lol)                                                                                                                !     !
+k_pot=k                                                                                                                     !     !
+write(*,*)'k pote= ',k                                                                                                      !     !
+allocate(pot_val(0:k-1),pot_rowc(0:n),pot_row_col(0:k-1,0:1))                                                               !     !
+!                                                                                                                           !     !
+pot_rowc=0.d0                                                                                                               !     !
+k=0                                                                                                                         !     !
+do i=0,n-1 !running through rows                                                                                            !     !
+  do j=0,n-1 !running through columns                                                                                       !     !
+    if (Ha(i,j) /= 0.d0) then                                                                                               !     !
+      pot_val(k)=Ha(i,j)  !storing each non-zero element                                                                    !     !
+      pot_row_col(k,0)=i !storing the row index of each non-zero element                                                    !     !
+      pot_row_col(k,1)=j !storing the column index of each non-zero element                                                 !     !
+      k=k+1                                                                                                                 !     !
+    end if                                                                                                                  !     !
+  end do                                                                                                                    !     !
+  pot_rowc(i+1)=k !storing the counting of non-zero elements in each row                                                    !     !
+end do                                                                                                                      !     !
+!---------------------------------------------------------------------------------------------------------------------------!     !
 ! Adding potential energy - moving only along the diagonal of the axmiltonian                                                     !
 do j=0*Nq1,(Nq2-1)*Nq1,Nq1 ! Moving through the boxes, from the fisrt to the last one                                             !
   do i=1,Nq1 ! Moving inside the box                                                                                              !
@@ -990,12 +1338,10 @@ do j=0*Nq1,(Nq2-1)*Nq1,Nq1 ! Moving through the boxes, from the fisrt to the las
 end do ! end of do through boxes                                                                                                  !
 !=================================================================================================================================!
 
-allocate (Ha(0:Nst*Nq1*Nq2-1,0:Nst*Nq1*Nq2-1))
-
-!$OMP PARALLEL DO shared(ha,ax) 
+!$OMP PARALLEL DO shared(Ha,ax) 
 do i=1,Nst*Nq1*Nq2
   do j=1,Nst*Nq1*Nq2
-    Ha(i-1,j-1)=ax(i,j)
+    Ha(i-1,j-1)=ax(i,j) ! Reseting Ha to include only the value of the kinetic energy and potential energy in this point.
   end do
 end do
 !$OMP end parallel do
