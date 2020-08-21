@@ -473,56 +473,10 @@ rotz(:) = matmul(matrix,vec)
 
 return
 end function rotz
-!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-!subroutine generate_random_orientation
-!real(kind=dp) :: x,w,z,ang,u(3),rot,matrix(3,3),matrix2(3,3),eye(3,3),rotmatrix(3,3),normfactor
-!call random_number(z)
-!z = z * (1.d0 - dcos(coneAng)) + dcos(coneAng)
-!call random_number(ang)
-!ang = ang * 2.d0 * pi
-!x = dsqrt(1.d0 - z**2.d0) * dcos(ang)
-!w = dsqrt(1.d0 - z**2.d0) * dsin(ang) !The y component
-!!rotating x, w and z to be around each bond
-!u = [-1.d0 * orie(2), 1.d0 * orie(1), 0.d0 ]/norm2(orie) !Cross product between [0,0,1] and orie
-!!normfactor = dsqrt( u(1)**2.d0 + u(2)**2.d0 + u(3)**2.d0 )
-!u = u / norm2(u)
-!rot = acos( dot_product(orie/norm2(orie),[0,0,1]) )
-!matrix(1,1) = 0.d0
-!matrix(1,2) =-u(3)
-!matrix(1,3) = u(2)
-!matrix(2,1) = u(3)
-!matrix(2,2) = 0.d0
-!matrix(2,3) =-u(1)
-!matrix(3,1) =-u(2)
-!matrix(3,2) = u(1)
-!matrix(3,3) = 0.d0
-!
-!matrix2(1,1) = u(1)*u(1)
-!matrix2(1,2) = u(1)*u(2)
-!matrix2(1,3) = u(1)*u(3)
-!matrix2(2,1) = u(2)*u(1)
-!matrix2(2,2) = u(2)*u(2)
-!matrix2(2,3) = u(2)*u(3)
-!matrix2(3,1) = u(3)*u(1)
-!matrix2(3,2) = u(3)*u(2)
-!matrix2(3,3) = u(3)*u(3)
-!
-!eye(1,1) = 1.d0
-!eye(1,2) = 0.d0
-!eye(1,3) = 0.d0
-!eye(2,1) = 0.d0
-!eye(2,2) = 1.d0
-!eye(2,3) = 0.d0
-!eye(3,1) = 0.d0
-!eye(3,2) = 0.d0
-!eye(3,3) = 1.d0
-!
-!rotmatrix(:,:) = dcos(rot) * eye(:,:) + dsin(rot) * matrix + ( 1.d0 - dcos(rot) ) * matrix2
-!
-!orientation(1) = rotmatrix(1,1)*x + rotmatrix(1,2)*w + rotmatrix(1,3)*z
-!orientation(2) = rotmatrix(2,1)*x + rotmatrix(2,2)*w + rotmatrix(2,3)*z
-!orientation(3) = rotmatrix(3,1)*x + rotmatrix(3,2)*w + rotmatrix(3,3)*z
-!
-!end subroutine generate_random_orientation
-!!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+subroutine hold
+write(*,'(a)')'Program paused. Press Enter to resume'
+read(*,*)
+end subroutine hold
+
 end module global_param
