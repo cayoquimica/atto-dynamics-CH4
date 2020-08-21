@@ -729,7 +729,7 @@ subroutine save_vector_h5(x,n,fname,le)
 use HDF5
 use global_param
 implicit none
-integer(kind=4)     :: n,le
+integer             :: n,le
 real(kind=dp)       :: x(n)
 character(len=le)   :: fname         ! File name
 character(len=le-3) :: dsetname      ! dataset name
@@ -765,10 +765,10 @@ end subroutine save_vector_h5
 !use HDF5
 !use global_param
 !implicit none
-!integer(kind=4)    :: m,n,le
+!integer            :: m,n,le
 !real(kind=dp)      :: x(m,n)
-!character(len=l)   :: fname         ! File name
-!character(len=l-3) :: dsetname      ! dataset name
+!character(len=le)  :: fname         ! File name
+!character(len=le-3):: dsetname      ! dataset name
 !integer(HID_T)     :: file_id       ! File identifier
 !integer(HID_T)     :: dspace_id     ! Dataspace identifier
 !integer(HID_T)     :: dset_id       ! Dataset identifier
@@ -818,8 +818,8 @@ end subroutine angular_momentum
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 subroutine progress_bar(jjjj,ffff)
 implicit none
-integer(kind=4)::jjjj,kkkk,ffff
-character(len=30)::bar="?????% |                    | "
+integer :: jjjj,kkkk,ffff
+character(len=30) :: bar="?????% |                    | "
 write(bar(1:5),'(f5.1)') 100.d0/real(ffff)*jjjj
 do kkkk=1, int(real(jjjj)/real(ffff)*20.d0)
   bar(8+kkkk:8+kkkk)="*"
