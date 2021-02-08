@@ -1,0 +1,8 @@
+#!/bin/bash
+h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large global_param.f90
+#h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large load_hamiltonian.f90
+h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large dyn.f90
+#h5pfc -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large load_hamiltonian.o global_param.o -o Load.exe
+h5pfc -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large dyn.o global_param.o -o Run.exe
+
+rm *.o *.mod

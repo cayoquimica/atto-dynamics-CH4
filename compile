@@ -1,8 +1,9 @@
-#!/bin/bash
-h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large -i8 global_param.f90
-h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large -i8 load_hamiltonian.f90
-h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large -i8 dyn.f90
-h5pfc -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large -i8 load_hamiltonian.o global_param.o -o Load.exe
-h5pfc -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large -i8 dyn.o global_param.o -o Run.exe
-
-rm *.o *.mod
+h5pfc -c -qopenmp -i8 -I${MKLROOT}/include/intel64/ilp64 -mkl=parallel ${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -liomp5 -lpthread -lm -ldl global_param.f90 
+h5pfc -c -qopenmp -i8 -I${MKLROOT}/include/intel64/ilp64 -mkl=parallel ${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -liomp5 -lpthread -lm -ldl dyn.f90 
+h5pfc    -qopenmp -i8 -I${MKLROOT}/include/intel64/ilp64 -mkl=parallel ${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -liomp5 -lpthread -lm -ldl dyn.o global_param.o -o exe
+h5pfc -c -qopenmp -i8 -I${MKLROOT}/include/intel64/ilp64 -mkl=parallel ${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -liomp5 -lpthread -lm -ldl load_hamiltonian.f90 
+h5pfc    -qopenmp -i8 -I${MKLROOT}/include/intel64/ilp64 -mkl=parallel ${MKLROOT}/lib/intel64/libmkl_blas95_ilp64.a ${MKLROOT}/lib/intel64/libmkl_lapack95_ilp64.a -liomp5 -lpthread -lm -ldl load_hamiltonian.o global_param.o -o Load.exe
+#h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large global_param.f90
+#h5pfc -c -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large dyn.f90
+#h5pfc -CB -heap-arrays -qopenmp -mkl -fpic -mcmodel=large dyn.o global_param.o -o dyn.exe
+rm *.mod *.o
