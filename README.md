@@ -1,4 +1,5 @@
 # atto-dynamics-CH4
+(FLAGS TO USE WITH IFORT THAT CAN BE USEFUL: -g -check all -traceback -debug extended)
 This code is written to do the attoseconds dynamics of the Jahn-Teller effect in the sudden ionization of a CH4 molecule in a 2D scheme.
 
 It has 3 fortran .f90 files and 15 .txt files. 
